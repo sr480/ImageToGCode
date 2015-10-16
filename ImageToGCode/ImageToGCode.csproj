@@ -58,6 +58,7 @@
     <Compile Include="Engine\BilinearInterpolator.cs" />
     <Compile Include="Engine\IInterpolator.cs" />
     <Compile Include="Engine\Image.cs" />
+    <Compile Include="Engine\Line.cs" />
     <Compile Include="Engine\Pixel.cs" />
     <Compile Include="Engine\StepInterpolator.cs" />
     <Compile Include="Engine\Vector.cs" />

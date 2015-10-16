@@ -21,6 +21,13 @@ namespace ImageToGCode.Engine
             return new Vector(a.X * b.X, a.Y * b.Y);
         }
 
+        public static Vector operator *(Vector a, double d)
+        {
+            return new Vector(a.X * d, a.Y * d);
+        }
+
+        
+
         private readonly double _Y;
         private readonly double _X;
         private readonly Lazy<double> _Length;
@@ -38,6 +45,12 @@ namespace ImageToGCode.Engine
         public Vector Normalize()
         {
             return new Vector(X / Length, Y / Length);
+        }
+
+        //если будет операция поворота вектора, то этот метод не нужен
+        public Vector ChangeDirection()
+        {
+            return new Vector(-X, -Y);
         }
 
     }

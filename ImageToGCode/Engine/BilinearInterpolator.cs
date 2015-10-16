@@ -40,7 +40,7 @@ namespace ImageToGCode.Engine
             if (lb.Y > lt.Y)
                 throw new Exception("top and bottom pixels are swaped");
 
-            if (dest.X > rt.X | dest.X < lt.X | dest.Y > rt.Y | dest.Y < rb.Y)
+            if (dest.X > rt.X || dest.X < lt.X || dest.Y > rt.Y || dest.Y < rb.Y)
                 throw new Exception("dest is not between points");
 
             return GetIntermediateVertical(GetIntermediateHorizontal(lt, rt, dest), GetIntermediateHorizontal(lb, rb, dest), dest);
@@ -51,7 +51,7 @@ namespace ImageToGCode.Engine
             if (p1.Y != p2.Y)
                 throw new Exception("Pixels must be on one horizontal line");
 
-            if (!((p1.X < intermed.X & p2.X > intermed.X) | (p2.X < intermed.X & p1.X > intermed.X)))
+            if (!((p1.X < intermed.X && p2.X > intermed.X) | (p2.X < intermed.X && p1.X > intermed.X)))
                 throw new Exception("intermed is not between p1 and p2");
 
             double k1 = (p2.X - intermed.X) / (p2.X - p1.X);
@@ -65,7 +65,7 @@ namespace ImageToGCode.Engine
             if (p1.X != p2.X)
                 throw new Exception("Pixels must be on one vertical line");
 
-            if (!((p1.Y < intermed.Y & p2.Y > intermed.Y) | (p2.Y < intermed.Y & p1.Y > intermed.Y)))
+            if (!((p1.Y < intermed.Y && p2.Y > intermed.Y) | (p2.Y < intermed.Y && p1.Y > intermed.Y)))
                 throw new Exception("intermed is not between p1 and p2");
 
             double k1 = (p2.Y - intermed.Y) / (p2.Y - p1.Y);
