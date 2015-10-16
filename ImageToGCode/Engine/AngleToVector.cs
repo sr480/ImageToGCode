@@ -10,7 +10,7 @@ namespace ImageToGCode.Engine
     {
         public static Vector GetNormal(double angle)
         {
-            return new Vector(Math.Cos(angle), Math.Sin(angle));
+            return new Vector(Math.Cos(angle/180.0*Math.PI), Math.Sin(angle/180.0*Math.PI));
         }
         public static double GetAngle(Vector v)
         {

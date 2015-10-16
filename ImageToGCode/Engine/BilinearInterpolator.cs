@@ -13,7 +13,7 @@ namespace ImageToGCode.Engine
     {
         public Pixel GetPixel(Image image, Vector position)
         {
-            if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
+            if (position.X > image.Width - 2 || position.Y > image.Height - 2 || position.X < 0 || position.Y < 0)
                 //throw new Exception("Point is out of dimension");
                 return null;
 
@@ -52,7 +52,7 @@ namespace ImageToGCode.Engine
             if (p1.Y != p2.Y)
                 throw new Exception("Pixels must be on one horizontal line");
 
-            if (!((p1.X < intermed.X & p2.X > intermed.X) | (p2.X < intermed.X & p1.X > intermed.X)))
+            if (!((p1.X <= intermed.X && p2.X >= intermed.X) || (p2.X <= intermed.X && p1.X >= intermed.X)))
                 throw new Exception("intermed is not between p1 and p2");
 
             double k1 = (p2.X - intermed.X) / (p2.X - p1.X);
@@ -66,7 +66,7 @@ namespace ImageToGCode.Engine
             if (p1.X != p2.X)
                 throw new Exception("Pixels must be on one vertical line");
 
-            if (!((p1.Y < intermed.Y & p2.Y > intermed.Y) | (p2.Y < intermed.Y & p1.Y > intermed.Y)))
+            if (!((p1.Y <= intermed.Y && intermed.Y <= p2.Y) || (p2.Y <= intermed.Y && intermed.Y <= p1.Y)))
                 throw new Exception("intermed is not between p1 and p2");
 
             double k1 = (p2.Y - intermed.Y) / (p2.Y - p1.Y);

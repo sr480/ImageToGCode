@@ -43,7 +43,7 @@ namespace ImageToGCode
                     el.Width = 1;
                     el.Height = 1;
                     el.Fill = Brushes.Black;
-                    el.Opacity = point.Intensity;
+                    el.Opacity = 1 - point.Intensity;
                     Plot.Children.Add(el);
                 }
             }

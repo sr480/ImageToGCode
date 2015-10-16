@@ -56,7 +56,7 @@
                 </ListView>
             </TabItem>
             <TabItem Header="Просмотр">
-                <Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot"/>
+                    <Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot"/>
             </TabItem>
         </TabControl>
     </Grid>
