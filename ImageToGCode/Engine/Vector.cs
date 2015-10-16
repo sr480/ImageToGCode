@@ -44,6 +44,11 @@ namespace ImageToGCode.Engine
         {
             return new Vector(X / Length, Y / Length);
         }
+        
+        public Vector Reverse()
+        {
+            return new Vector(-X, -Y);
+        }
 
     }
 }
