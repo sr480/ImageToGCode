@@ -14,7 +14,8 @@ namespace ImageToGCode.Engine
         public Pixel GetPixel(Image image, Vector position)
         {
             if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
-                throw new Exception("Point is out of dimension");
+                //throw new Exception("Point is out of dimension");
+                return null;
 
             Pixel p1 = image.GetPixel((int)position.X, (int)position.Y + 1);
             Pixel p2 = image.GetPixel((int)position.X + 1, (int)position.Y + 1);

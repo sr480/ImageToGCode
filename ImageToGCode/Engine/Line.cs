@@ -38,7 +38,18 @@ namespace ImageToGCode.Engine
             //пока так
             IInterpolator inter = new BilinearInterpolator();
 
-            _Pixels.Add(inter.GetPixel(_Image, firstVector));
+            //if(inter.GetPixel())
+            
+            Pixel temp = inter.GetPixel(_Image, firstVector);
+            while(temp != null)
+            {
+                _Pixels.Add(temp);
+            }
+            
+            
+            
+
+            
             
         }
 
