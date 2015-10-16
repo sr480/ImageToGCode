@@ -57,7 +57,7 @@ namespace ImageToGCode.Engine
             double k1 = (p2.X - intermed.X) / (p2.X - p1.X);
             double k2 = (intermed.X - p1.X) / (p2.X - p1.X);
 
-            double intencity = k1 * p1.Intencity + k2 * p2.Intencity;
+            double intencity = k1 * p1.Intensity + k2 * p2.Intensity;
             return new Pixel(intencity, intermed.X, p1.Y);
         }
         private Pixel GetIntermediateVertical(Pixel p1, Pixel p2, Vector intermed)
@@ -71,7 +71,7 @@ namespace ImageToGCode.Engine
             double k1 = (p2.Y - intermed.Y) / (p2.Y - p1.Y);
             double k2 = (intermed.X - p1.Y) / (p2.Y - p1.Y);
 
-            double intencity = k1 * p1.Intencity + k2 * p2.Intencity;
+            double intencity = k1 * p1.Intensity + k2 * p2.Intensity;
             return new Pixel(intencity, intermed.X, intermed.Y);
         }
     }
