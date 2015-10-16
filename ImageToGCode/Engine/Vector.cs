@@ -21,6 +21,11 @@ namespace ImageToGCode.Engine
             return new Vector(a.X * b.X, a.Y * b.Y);
         }
 
+        public static Vector operator *(Vector a, double d)
+        {
+            return new Vector(a.X * d, a.Y * d);
+        }
+
         private readonly double _Y;
         private readonly double _X;
         private readonly Lazy<double> _Length;
