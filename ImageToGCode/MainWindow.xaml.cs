@@ -22,7 +22,7 @@ namespace ImageToGCode
     {
         public MainWindow()
         {
-            Console.WriteLine("КОМИЧУ!");
+            Console.WriteLine("КОМИЧУ!666");
             InitializeComponent();
             DataContext = new MainViewModel();
         }
