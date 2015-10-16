@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ImageToGCode.Engine
+{
+    class StepInterpolator : IInterpolator
+    {
+        public Pixel GetPixel(Image image, Vector position)
+        {
+            if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
+                throw new Exception("Point is out of image dimension");
+
+
+
+            return null;
+        }
+    }
+}

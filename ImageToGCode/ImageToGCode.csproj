@@ -59,6 +59,7 @@
     <Compile Include="Engine\IInterpolator.cs" />
     <Compile Include="Engine\Image.cs" />
     <Compile Include="Engine\Pixel.cs" />
+    <Compile Include="Engine\StepInterpolator.cs" />
     <Compile Include="Engine\Vector.cs" />
     <Compile Include="GCodeGenerator.cs" />
     <Compile Include="Tools\Command.cs" />
