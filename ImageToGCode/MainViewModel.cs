@@ -14,11 +14,14 @@ namespace ImageToGCode
 {
     class MainViewModel : INotifyPropertyChanged
     {
+        #region Fields
+        private double _Angle = 45;
         private double _Feed = 400;
-        private bool _EngraveBothDirection;
+        private bool _EngraveBothDirection = true;
         private bool _UseFreeZone = true;
         private double _FreeZone = 10;
-        private double _LineStep = 0.1;
+        private double _LineResolution = 0.1;
+        private double _PointResolution = 0.1;
         private double _AspectRate = 2;
         private bool _KeepAspectRatio = true;
         private ObservableCollection<string> _GCode;
@@ -26,9 +29,9 @@ namespace ImageToGCode
         private double _Height = 5;
         private double _Width = 4;
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
-
         private Bitmap _Bitmap;
-
+        #endregion
+        #region Properties: Input parameters
         public string PathToFile
         {
             get
@@ -43,8 +46,6 @@ namespace ImageToGCode
                 OnPropertyChanged("_PathToFile");
             }
         }
-        public Command OpenImage { get; private set; }
-        public Command Generate { get; private set; }
 
         public double Width
         {
@@ -73,15 +74,43 @@ namespace ImageToGCode
             }
         }
 
-        public double LineStep
+        public double LineResolution
         {
-            get { return _LineStep; }
+            get { return _LineResolution; }
             set
             {
-                if (_LineStep == value)
+                if (_LineResolution == value)
                     return;
-                _LineStep = value;
-                OnPropertyChanged("LineStep");
+                _LineResolution = value;
+                OnPropertyChanged("LineResolution");
+            }
+        }
+        public double PointResolution
+        {
+            get
+            {
+                return _PointResolution;
+            }
+            set
+            {
+                if (_PointResolution == value)
+                    return;
+                _PointResolution = value;
+                OnPropertyChanged("PointResolution");
+            }
+        }
+        public double Angle
+        {
+            get
+            {
+                return _Angle;
+            }
+            set
+            {
+                if (_Angle == value)
+                    return;
+                _Angle = value;
+                OnPropertyChanged("Angle");
             }
         }
 
@@ -156,6 +185,13 @@ namespace ImageToGCode
                 CountHeight(Width);
             }
         }
+        #endregion
+
+        #region Commands
+        public Command OpenImage { get; private set; }
+        public Command Generate { get; private set; }
+        public Command Save { get; private set; }
+        #endregion
 
         public ObservableCollection<string> GCode
         {
@@ -167,8 +203,9 @@ namespace ImageToGCode
             _GCode = new ObservableCollection<string>();
             Generate = new Command((x) => GenerateAction(), (x) => _Bitmap != null);
             OpenImage = new Command((x) => OpenImageAction(), (x) => true);
+            Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
         }
-
+        #region Command implements
         private void OpenImageAction()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -188,20 +225,38 @@ namespace ImageToGCode
         }
         private void GenerateAction()
         {
-            var gen = new GCodeGenerator(Width, Height, LineStep, FreeZone, Feed, EngraveBothDirection);
-            var gCode = gen.Generate(_Bitmap);//(Bitmap)Bitmap.FromFile("D:\\test.png"));
+            var gen = new GCodeGenerator(Width, Height, LineResolution, FreeZone, Feed, EngraveBothDirection);
+            var gCode = gen.Generate(_Bitmap);
             GCode.Clear();
-            var file = System.IO.File.CreateText("D:\\test.nc");
-            foreach (var line in gCode)
-            {
-                GCode.Add(line);
-                
-                file.WriteLine(line);
-                
-            }
-            file.Close();
-        }
 
+            foreach (var line in gCode)
+                GCode.Add(line);
+            Save.RaiseCanExecuteChanged();
+        }
+        private void SaveGCodeAction()
+        {
+            SaveFileDialog svDlg = new SaveFileDialog();
+            svDlg.Filter = "LinuxCNC file (*.ngc)|*.ngc|GCode file (*.nc)|*.nc|All file (*.*)|*.*";
+            svDlg.FilterIndex = 1;
+            svDlg.RestoreDirectory = true;
+            if (svDlg.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var file = System.IO.File.CreateText(svDlg.FileName))
+                    {
+                        foreach (var line in GCode)
+                            file.WriteLine(line);
+                        file.Close();
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show("Ошибка сохранения файла", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+            }
+        }
+        #endregion
         private void CountWidth(double height)
         {
             Width = height * AspectRate;
@@ -211,6 +266,7 @@ namespace ImageToGCode
             Height = width / AspectRate;
         }
 
+        #region IPropertyChanged
         private void OnPropertyChanged(string propertyName)
         {
             if (SynchronizationContext.Current != _synchronizationContext)
@@ -223,7 +279,7 @@ namespace ImageToGCode
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs((string)param));
         }
-
         public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
     }
 }

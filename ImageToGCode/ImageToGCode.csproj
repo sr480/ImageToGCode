@@ -56,12 +56,15 @@
     </ApplicationDefinition>
     <Compile Include="Configuration.cs" />
     <Compile Include="Engine\BilinearInterpolator.cs" />
+    <Compile Include="Engine\AngleToVector.cs" />
     <Compile Include="Engine\IInterpolator.cs" />
     <Compile Include="Engine\Image.cs" />
+    <Compile Include="Engine\ImageProcessor.cs" />
     <Compile Include="Engine\Pixel.cs" />
     <Compile Include="Engine\StepInterpolator.cs" />
     <Compile Include="Engine\Vector.cs" />
     <Compile Include="GCodeGenerator.cs" />
+    <Compile Include="ParameterHelpers\FeedToAngle.cs" />
     <Compile Include="Tools\Command.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
