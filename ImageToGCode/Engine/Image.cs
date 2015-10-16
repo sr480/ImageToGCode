@@ -27,12 +27,12 @@ namespace ImageToGCode.Engine
 
             for (int x = 0; x < bitmap.Width; x++)
                 for (int y = 0; y < bitmap.Height; y++)
-                    _pixels[x, y] = new Pixel(bitmap.GetPixel(x, bitmap.Height - y).GetBrightness(), x, y);
+                    _pixels[x, y] = new Pixel(bitmap.GetPixel(x, bitmap.Height - y - 1).GetBrightness(), x, y);
         }
 
         public Pixel GetPixel(int x, int y)
         {
-            if (x < 0 | y < 0 | x > Width | y > Height)
+            if (x < 0 | y < 0 | x >= Width | y >= Height)
                 return null;
             return _pixels[x, y];
         }

@@ -25,7 +25,7 @@ namespace ImageToGCode.Engine
                 throw new Exception("lineRes can not be negative");
             if (pointRes < 0)
                 throw new Exception("pointRes can not be negative");
-            
+
             _Angle = angle;
             _PointRes = pointRes;
             _LineRes = lineRes;
@@ -34,5 +34,13 @@ namespace ImageToGCode.Engine
             _image = new Image(bitmap);
         }
 
+        public ImageByLinesPresenter CreatePresenter()
+        {
+            var ip = new ImageByLinesPresenter(_image);
+
+            ip.Present(AngleToVector.GetNormal(_Angle), _LineRes, _PointRes);
+
+            return ip;
+        }
     }
 }

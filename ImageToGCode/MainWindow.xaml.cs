@@ -25,5 +25,28 @@ namespace ImageToGCode
             InitializeComponent();
             DataContext = new MainViewModel();
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = (MainViewModel)DataContext;
+
+            if (vm.Presenter == null)
+                return;
+
+            Plot.Children.Clear();
+            foreach (var line in vm.Presenter.Lines)
+            {
+                foreach (var point in line.Pixels)
+                {
+                    var el = new Ellipse();
+                    el.Margin = new Thickness(point.X, point.Y, 0, 0);
+                    el.Width = 1;
+                    el.Height = 1;
+                    el.Fill = Brushes.Black;
+                    el.Opacity = point.Intensity;
+                    Plot.Children.Add(el);
+                }
+            }
+        }
     }
 }

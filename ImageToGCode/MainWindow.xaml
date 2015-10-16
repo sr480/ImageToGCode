@@ -40,6 +40,7 @@
                         <Button Command="{Binding OpenImage}">Открыть изображение</Button>
                         <Button Command="{Binding Generate}">Генерировать</Button>
                         <Button Command="{Binding Save}">Сохранить</Button>
+                        <Button Click="Button_Click" >Просмотр</Button>
                     </StackPanel>
                 </DockPanel>
             </TabItem>
@@ -55,6 +56,7 @@
                 </ListView>
             </TabItem>
             <TabItem Header="Просмотр">
+                <Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot"/>
             </TabItem>
         </TabControl>
     </Grid>

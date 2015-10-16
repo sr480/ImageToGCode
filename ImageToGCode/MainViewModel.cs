@@ -186,7 +186,7 @@ namespace ImageToGCode
             }
         }
         #endregion
-
+        public Engine.ImageByLinesPresenter Presenter { get; private set; }
         #region Commands
         public Command OpenImage { get; private set; }
         public Command Generate { get; private set; }
@@ -225,13 +225,16 @@ namespace ImageToGCode
         }
         private void GenerateAction()
         {
-            var gen = new GCodeGenerator(Width, Height, LineResolution, FreeZone, Feed, EngraveBothDirection);
-            var gCode = gen.Generate(_Bitmap);
-            GCode.Clear();
+            var processor = new Engine.ImageProcessor(_Bitmap, Width, Height, LineResolution, PointResolution, Angle);
+            Presenter = processor.CreatePresenter();
 
-            foreach (var line in gCode)
-                GCode.Add(line);
-            Save.RaiseCanExecuteChanged();
+            //var gen = new GCodeGenerator(Width, Height, LineResolution, FreeZone, Feed, EngraveBothDirection);
+            //var gCode = gen.Generate(_Bitmap);
+            //GCode.Clear();
+
+            //foreach (var line in gCode)
+            //    GCode.Add(line);
+            //Save.RaiseCanExecuteChanged();
         }
         private void SaveGCodeAction()
         {
