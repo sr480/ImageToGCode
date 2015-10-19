@@ -38,7 +38,7 @@ namespace ImageToGCode.Engine
         {
             var ip = new ImageByLinesPresenter(_image);
 
-            ip.Present(AngleToVector.GetNormal(_Angle), _LineRes, _PointRes);
+            ip.Present(AngleToVector.GetNormal(AngleToVector.DegToRad(_Angle)), _LineRes, _PointRes);
 
             return ip;
         }
