@@ -44,11 +44,22 @@ namespace ImageToGCode.Engine
         {
             return new Vector(X / Length, Y / Length);
         }
-        
+
         public Vector Reverse()
         {
             return new Vector(-X, -Y);
         }
-
+        public Vector Rotate(double angle)
+        {
+            return new Vector(X * Math.Cos(angle) - Y * Math.Sin(angle), Y * Math.Cos(angle) + X * Math.Sin(angle));
+        }
+        public Vector Rotate90CCW()
+        {
+            return new Vector(-Y, X);
+        }
+        public double GetAngle()
+        {
+            return Math.Atan(Y/X);
+        }
     }
 }
