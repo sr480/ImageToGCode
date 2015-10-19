@@ -45,7 +45,7 @@ namespace ImageToGCode.Engine
 
         //конструктор прямой через вектор нормали и точку
         public Line(Vector normalVector, Vector pointToCross, Image image)
-            :this(image)
+            : this(image)
         {
             _NormalVector = normalVector;
 
@@ -57,7 +57,7 @@ namespace ImageToGCode.Engine
 
         //контструктор прямой через вектор нормали. А координаты точки совпадают с координатами вектора нормали
         public Line(Vector normalVector, Image image)
-            :this(image)
+            : this(image)
         {
             _NormalVector = normalVector;
 
@@ -68,13 +68,24 @@ namespace ImageToGCode.Engine
 
         public void GeneratePixels(double pointResolution)
         {
-            var currentVector = GetFirstVector();
+            //var currentVector = GetFirstVector();
 
             //направляющий вектор берётся по двум точкам, лежащим на прямой
             //var directionVector = (currentVector - _NormalVector).Normalize()  * pointResolution ;
-            var directionVector = new Vector(-B,A).Normalize() * pointResolution;
+            var directionVector = _NormalVector.Normalize().Rotate90CCW() * pointResolution; //new Vector(-B,A).Normalize() * pointResolution;
+            if (directionVector.X < 0)
+                directionVector = directionVector.Reverse();
 
+            double y = _NormalVector.X * _NormalVector.X / _NormalVector.Y + _NormalVector.Y;
+            double x = 0.0;
 
+            if (y > _Image.Height - 1)
+            {
+                y = _Image.Height - 1;
+                x = GetX(y);
+            }
+
+            var currentVector = new Vector(x, y);
             //пока так
             //IInterpolator inter = new BilinearInterpolator();
             IInterpolator inter = new StepInterpolator();
@@ -82,25 +93,22 @@ namespace ImageToGCode.Engine
             //если одно прибавление направляющего вектора выходит за рамки картинки, то меняем направление направляющего вектора
             if (inter.GetPixel(_Image, currentVector + directionVector) == null)
                 directionVector = directionVector.Reverse();
-            
+
             //наполняем пикселями
             Pixel temp = inter.GetPixel(_Image, currentVector);
-            while(temp != null)
+            while (temp != null)
             {
                 _Pixels.Add(temp);
                 currentVector += directionVector;
                 temp = inter.GetPixel(_Image, currentVector);
             }
-
-            if(Pixels.Count == 0)
-                Console.WriteLine();
         }
 
         private Vector GetFirstVector()
         {
 
             double temp;
-            
+
             //пересечение c OX, y = 0
             temp = -C / A;
             if (0 <= temp && temp <= _Image.Width - 1)
