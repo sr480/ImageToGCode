@@ -27,6 +27,16 @@ namespace ImageToGCode.Engine
             }
         }
 
+        public double GetX(double Y)
+        {
+            return (-C - B * Y) / A;
+        }
+
+        public double GetY(double X)
+        {
+            return (-C - A * X) / B;
+        }
+
         Line(Image image)
         {
             _Pixels = new List<Pixel>();
@@ -61,10 +71,13 @@ namespace ImageToGCode.Engine
             var currentVector = GetFirstVector();
 
             //направляющий вектор берётся по двум точкам, лежащим на прямой
-            var directionVector = (currentVector - _NormalVector).Normalize()  * pointResolution ;
+            //var directionVector = (currentVector - _NormalVector).Normalize()  * pointResolution ;
+            var directionVector = new Vector(-B,A).Normalize() * pointResolution;
+
 
             //пока так
-            IInterpolator inter = new BilinearInterpolator();
+            //IInterpolator inter = new BilinearInterpolator();
+            IInterpolator inter = new StepInterpolator();
 
             //если одно прибавление направляющего вектора выходит за рамки картинки, то меняем направление направляющего вектора
             if (inter.GetPixel(_Image, currentVector + directionVector) == null)
@@ -78,6 +91,9 @@ namespace ImageToGCode.Engine
                 currentVector += directionVector;
                 temp = inter.GetPixel(_Image, currentVector);
             }
+
+            if(Pixels.Count == 0)
+                Console.WriteLine();
         }
 
         private Vector GetFirstVector()
@@ -107,6 +123,11 @@ namespace ImageToGCode.Engine
 
             throw new Exception("Line do not cross image");
 
+        }
+
+        public static Vector GetIntersection(Line l1, Line l2)
+        {
+            return new Vector(-(l1.C * l2.B - l2.C * l1.B) / (l1.A * l2.B - l2.A * l1.B), -(l1.A * l2.C - l2.A * l1.C) / (l1.A * l2.B - l2.A * l1.B));
         }
     }
 }

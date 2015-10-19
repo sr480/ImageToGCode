@@ -11,10 +11,10 @@ namespace ImageToGCode.Engine
         public Pixel GetPixel(Image image, Vector position)
         {
             if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
-                //throw new Exception("Point is out of image dimension");
                 return null;
 
             return new Pixel(image.GetPixel((int)Math.Round(position.X), (int)Math.Round(position.Y)).Intensity, position);
         }
+
     }
 }
