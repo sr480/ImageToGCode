@@ -15,13 +15,15 @@ namespace ImageToGCode
     class MainViewModel : INotifyPropertyChanged
     {
         #region Fields
+        private Engine.Visualisers.LinesVisualiser _Visualiser;
+        private Engine.ImageByLinesPresenter _Presenter;
         private double _Angle = 45;
         private double _Feed = 400;
         private bool _EngraveBothDirection = true;
         private bool _UseFreeZone = true;
         private double _FreeZone = 10;
-        private double _LineResolution = 0.1;
-        private double _PointResolution = 0.1;
+        private double _LineResolution = 2;
+        private double _PointResolution = 2;
         private double _AspectRate = 2;
         private bool _KeepAspectRatio = true;
         private ObservableCollection<string> _GCode;
@@ -186,7 +188,34 @@ namespace ImageToGCode
             }
         }
         #endregion
-        public Engine.ImageByLinesPresenter Presenter { get; private set; }
+        public Engine.ImageByLinesPresenter Presenter
+        {
+            get
+            {
+                return _Presenter;
+            }
+            private set
+            {
+                if (_Presenter == value)
+                    return;
+                _Presenter = value;
+                OnPropertyChanged("Presenter");
+            }
+        }
+        public Engine.Visualisers.LinesVisualiser Visualiser
+        {
+            get
+            {
+                return _Visualiser;
+            }
+            private set
+            {
+                if (_Visualiser == value)
+                    return;
+                _Visualiser = value;
+                OnPropertyChanged("Visualiser");
+            }
+        }
         #region Commands
         public Command OpenImage { get; private set; }
         public Command Generate { get; private set; }
@@ -227,6 +256,9 @@ namespace ImageToGCode
         {
             var processor = new Engine.ImageProcessor(_Bitmap, Width, Height, LineResolution, PointResolution, Angle);
             Presenter = processor.CreatePresenter();
+
+            Visualiser = new Engine.Visualisers.LinesVisualiser(Presenter);
+            Visualiser.Visualise();
 
             //var gen = new GCodeGenerator(Width, Height, LineResolution, FreeZone, Feed, EngraveBothDirection);
             //var gCode = gen.Generate(_Bitmap);
