@@ -8,9 +8,13 @@ namespace ImageToGCode.Engine
 {
     class AngleToVector
     {
+        public static double DegToRad(double deg)
+        {
+            return deg / 180.0 * Math.PI;
+        }
         public static Vector GetNormal(double angle)
         {
-            return new Vector(Math.Cos(angle/180.0*Math.PI), Math.Sin(angle/180.0*Math.PI));
+            return new Vector(Math.Cos(angle), Math.Sin(angle));
         }
         public static double GetAngle(Vector v)
         {
