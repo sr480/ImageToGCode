@@ -62,9 +62,11 @@
     <Compile Include="Engine\Line.cs" />
     <Compile Include="Engine\Image.cs" />
     <Compile Include="Engine\ImageProcessor.cs" />
+    <Compile Include="Engine\Visualisers\LinesVisualiser.cs" />
     <Compile Include="Engine\Pixel.cs" />
     <Compile Include="Engine\StepInterpolator.cs" />
     <Compile Include="Engine\Vector.cs" />
+    <Compile Include="Engine\Visualisers\VisualLine.cs" />
     <Compile Include="GCodeGenerator.cs" />
     <Compile Include="ParameterHelpers\FeedToAngle.cs" />
     <Compile Include="Tools\Command.cs" />
