@@ -24,22 +24,27 @@ namespace ImageToGCode.Engine
 
 
             Vector vectorIncrement = normalVector.Normalize() * lineResolution;
-            
-            Lines.Add(new Line(vectorIncrement, new Vector(0, 0), _Image));
 
-            int i = 1;
+            Lines.Add(new Line(vectorIncrement, new Vector(0, 0), _Image)); //узнать, что с цветом НЕ ТАК!
+            
+
+            var BorderLine = new Line(vectorIncrement, new Vector(_Image.Width - 1, _Image.Height - 1), _Image);
+            var IncrementLine = new Line(new Vector(-vectorIncrement.X, vectorIncrement.Y), new Vector(0, 0), _Image);
+
+            var Intersection = Line.GetIntersection(BorderLine, IncrementLine);
+
             Vector currentVector = vectorIncrement;
-            while (currentVector.Length < Math.Sqrt(Math.Pow(_Image.Height - 1, 2) + Math.Pow(_Image.Width - 1, 2)))
+
+            while (currentVector.X < Intersection.X | currentVector.Y < Intersection.Y)
             {
                 Lines.Add(new Line(currentVector, _Image));
-                currentVector = vectorIncrement * i * lineResolution;
-                i++;
+                currentVector += vectorIncrement;
             }
 
-                /*Parallel.ForEach(Lines, (l =>
-                {
-                    l.GeneratePixels(pointResolution);
-                }));*/
+
+            var lastVector = currentVector - vectorIncrement;
+            Console.WriteLine(lastVector);
+
 
             foreach (var item in Lines)
             {
