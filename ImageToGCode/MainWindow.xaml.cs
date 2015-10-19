@@ -33,16 +33,29 @@ namespace ImageToGCode
             if (vm.Presenter == null)
                 return;
 
+            var maxY = vm.Presenter.Lines.SelectMany(x => x.Pixels).Max(x => x.Y);
+
             Plot.Children.Clear();
             foreach (var line in vm.Presenter.Lines)
             {
                 foreach (var point in line.Pixels)
                 {
                     var el = new Ellipse();
-                    el.Margin = new Thickness(point.X, point.Y, 0, 0);
-                    el.Width = 1;
+                    el.Margin = new Thickness(point.X, maxY - point.Y, 0, 0);
+
+                    if (vm.Presenter.Lines[0] == line || vm.Presenter.Lines[vm.Presenter.Lines.Count-1] == line)
+                        el.Width = 4;
+                    else
+                        el.Width = 1;
+                    
+                    
+                    
                     el.Height = 1;
-                    el.Fill = Brushes.Black;
+
+                    if (vm.Presenter.Lines[0] == line || vm.Presenter.Lines[vm.Presenter.Lines.Count - 1] == line)
+                        el.Fill = Brushes.Red;
+                    else
+                        el.Fill = Brushes.Black;
                     el.Opacity = 1 - point.Intensity;
                     Plot.Children.Add(el);
                 }
