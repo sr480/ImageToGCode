@@ -1,7 +1,9 @@
 ﻿<Window x:Class="ImageToGCode.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="505" Width="781.611">
+        Title="MainWindow" Height="505" Width="781.611"
+        xmlns:vis="clr-namespace:ImageToGCode.Engine.Visualisers"
+        >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
@@ -56,9 +58,10 @@
                 </ListView>
             </TabItem>
             <TabItem Header="Просмотр">
-                <Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
+                <vis:Visualiser x:Name="visual"/>
+                <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
                     
-                </Canvas>
+                </Canvas>-->
             </TabItem>
         </TabControl>
     </Grid>
