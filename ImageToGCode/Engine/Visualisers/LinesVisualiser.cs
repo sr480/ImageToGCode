@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,17 +28,31 @@ namespace ImageToGCode.Engine.Visualisers
                 if (line.Pixels.Count < 2)
                     continue;
                 Pixel start = line.Pixels[0];
-                for(int i = 1; i < line.Pixels.Count - 1; i++)
+                for (int i = 1; i < line.Pixels.Count - 1; i++)
                 {
                     Pixel current = line.Pixels[i];
                     if (start.Intensity != current.Intensity)
                     {
-                        Lines.Add(new VisualLine(start, current, 1-start.Intensity));
+                        Lines.Add(new VisualLine(start, current, 1 - start.Intensity));
                         start = current;
                     }
                 }
                 Lines.Add(new VisualLine(start, line.Pixels[line.Pixels.Count - 1], 1 - start.Intensity));
             }
+        }
+
+        public Bitmap Render()
+        {
+            Bitmap bm = new Bitmap(_Presenter.Image.Width, _Presenter.Image.Height);
+            foreach (var line in _Presenter.Lines)
+            {
+                foreach (var p in line.Pixels)
+                {
+                    byte gcIntence = (byte)(255 * p.Intensity);
+                    bm.SetPixel((int)Math.Round(p.X), (int)Math.Round(p.Y), Color.FromArgb(gcIntence, gcIntence, gcIntence));
+                }
+            }
+            return bm;
         }
     }
 }
