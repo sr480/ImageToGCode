@@ -33,8 +33,6 @@ namespace ImageToGCode
             if (vm.Presenter == null)
                 return;
 
-            var maxY = vm.Presenter.Lines.SelectMany(x => x.Pixels).Max(x => x.Y);
-
             Plot.Children.Clear();
             //foreach (var line in vm.Presenter.Lines)
             //{
@@ -58,7 +56,11 @@ namespace ImageToGCode
                 line.X2 = vline.V2.X;
                 line.Y2 = Plot.ActualHeight - vline.V2.Y;
                 line.Opacity = vline.Intensity;
-                line.Stroke = Brushes.Black;
+
+                if (vm.Visualiser.Lines[0] == vline || vm.Visualiser.Lines[vm.Visualiser.Lines.Count - 1] == vline)
+                    line.Stroke = Brushes.Red;
+                else
+                    line.Stroke = Brushes.Black;
                 Plot.Children.Add(line);
             }
         }

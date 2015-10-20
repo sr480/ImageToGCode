@@ -76,12 +76,18 @@ namespace ImageToGCode.Engine
             if (directionVector.X < 0)
                 directionVector = directionVector.Reverse();
 
-            double y = _NormalVector.X * _NormalVector.X / _NormalVector.Y + _NormalVector.Y;
             double x = 0.0;
+            double y = GetY(x);
+            
 
             if (y > _Image.Height - 1)
             {
                 y = _Image.Height - 1;
+                x = GetX(y);
+            }
+            else if(y < 0)
+            {
+                y = 0;
                 x = GetX(y);
             }
 
@@ -91,8 +97,8 @@ namespace ImageToGCode.Engine
             IInterpolator inter = new StepInterpolator();
 
             //если одно прибавление направляющего вектора выходит за рамки картинки, то меняем направление направляющего вектора
-            if (inter.GetPixel(_Image, currentVector + directionVector) == null)
-                directionVector = directionVector.Reverse();
+            /*if (inter.GetPixel(_Image, currentVector + directionVector) == null)
+                directionVector = directionVector.Reverse();*/
 
             //наполняем пикселями
             Pixel temp = inter.GetPixel(_Image, currentVector);
@@ -102,6 +108,9 @@ namespace ImageToGCode.Engine
                 currentVector += directionVector;
                 temp = inter.GetPixel(_Image, currentVector);
             }
+
+            if(_Pixels.Count == 0)
+                Console.WriteLine(  );
         }
 
         private Vector GetFirstVector()
