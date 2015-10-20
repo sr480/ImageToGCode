@@ -51,10 +51,10 @@ namespace ImageToGCode
             foreach (var vline in vm.Visualiser.Lines)
             {
                 var line = new Line();
-                line.X1 = vline.V1.X;
-                line.Y1 = Plot.ActualHeight - vline.V1.Y;
-                line.X2 = vline.V2.X;
-                line.Y2 = Plot.ActualHeight - vline.V2.Y;
+                line.X1 = vline.V1.X*100;
+                line.Y1 = Plot.ActualHeight - vline.V1.Y*100;
+                line.X2 = vline.V2.X*100;
+                line.Y2 = Plot.ActualHeight - vline.V2.Y*100;
                 line.Opacity = vline.Intensity;
 
                 if (vm.Visualiser.Lines[0] == vline || vm.Visualiser.Lines[vm.Visualiser.Lines.Count - 1] == vline)

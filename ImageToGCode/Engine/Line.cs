@@ -93,8 +93,8 @@ namespace ImageToGCode.Engine
 
             var currentVector = new Vector(x, y);
             //пока так
-            //IInterpolator inter = new BilinearInterpolator();
-            IInterpolator inter = new StepInterpolator();
+            IInterpolator inter = new BilinearInterpolator();
+            //IInterpolator inter = new StepInterpolator();
 
             //если одно прибавление направляющего вектора выходит за рамки картинки, то меняем направление направляющего вектора
             /*if (inter.GetPixel(_Image, currentVector + directionVector) == null)

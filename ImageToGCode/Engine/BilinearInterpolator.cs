@@ -13,67 +13,46 @@ namespace ImageToGCode.Engine
     {
         public Pixel GetPixel(Image image, Vector position)
         {
-            if (position.X > image.Width - 2 || position.Y > image.Height - 2 || position.X < 0 || position.Y < 0)
+            if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
                 //throw new Exception("Point is out of dimension");
                 return null;
 
-            Pixel p1 = image.GetPixel((int)position.X, (int)position.Y + 1);
-            Pixel p2 = image.GetPixel((int)position.X + 1, (int)position.Y + 1);
-            Pixel p3 = image.GetPixel((int)position.X + 1, (int)position.Y);
-            Pixel p4 = image.GetPixel((int)position.X, (int)position.Y);
+            Pixel p01 = image.GetPixel((int)position.X, (int)position.Y + 1);
+            Pixel p11 = image.GetPixel((int)position.X + 1, (int)position.Y + 1);
+            Pixel p10 = image.GetPixel((int)position.X + 1, (int)position.Y);
+            Pixel p00 = image.GetPixel((int)position.X, (int)position.Y);
 
-            return Interpolate(p1, p2, p3, p4, position);
+            if(p00==null || p01==null || p10==null || p11 == null)
+                return LinearInterpolate(p00 ?? p01 ?? p10 ?? p11, p11 ?? p10 ?? p01 ?? p00, position);
+
+            var k1 = ((int)position.X + 1 - position.X) * ((int)position.Y + 1 - position.Y);
+            var k2 = (position.X - (int)position.X) * ((int)position.Y + 1 - position.Y);
+            var k3 = ((int)position.X + 1 - position.X) * (position.Y - (int)position.Y);
+            var k4 = (position.X - (int)position.X) * (position.Y - (int)position.Y);
+
+            var color = k1 * p00.Intensity + k2 * p10.Intensity + k3 * p01.Intensity + k4 * p11.Intensity;
+
+
+            return new Pixel(color, position.X, position.Y);
         }
 
-        public Pixel Interpolate(Pixel lt, Pixel rt, Pixel rb, Pixel lb, Vector dest)
+        private Pixel LinearInterpolate(Pixel first, Pixel second, Vector position)
         {
-            if (lt.Y != rt.Y)
-                throw new Exception("lt and rt must be on one horizont line");
-            if (lb.Y != rb.Y)
-                throw new Exception("lb and rb must be on one horizont line");
-            if (lt.X != lb.X)
-                throw new Exception("lt and lb must be on one vertical line");
-            if (rt.X != rb.X)
-                throw new Exception("rt and rb must be on one vertical line");
+            var result = new Pixel(position.X, position.Y);
 
-            if (lt.X > rt.X)
-                throw new Exception("left and right pixels are swaped");
-            if (lb.Y > lt.Y)
-                throw new Exception("top and bottom pixels are swaped");
+            if (first.Y == second.Y)
+            {
+                result.Intensity = (second.X - position.X) * first.Intensity + (position.X - first.X) * second.Intensity;
+            }
+            else if (first.X == second.X)
+                result.Intensity = (second.Y - position.Y) * first.Intensity + (position.Y - first.Y) * second.Intensity;
 
-            if (dest.X > rt.X | dest.X < lt.X | dest.Y > rt.Y | dest.Y < rb.Y)
-                throw new Exception("dest is not between points");
+            if (result.Intensity < 0)
+                result.Intensity *= -1;
 
-            return GetIntermediateVertical(GetIntermediateHorizontal(lt, rt, dest), GetIntermediateHorizontal(lb, rb, dest), dest);
+            return result;
         }
 
-        private Pixel GetIntermediateHorizontal(Pixel p1, Pixel p2, Vector intermed)
-        {
-            if (p1.Y != p2.Y)
-                throw new Exception("Pixels must be on one horizontal line");
 
-            if (!((p1.X <= intermed.X && p2.X >= intermed.X) || (p2.X <= intermed.X && p1.X >= intermed.X)))
-                throw new Exception("intermed is not between p1 and p2");
-
-            double k1 = (p2.X - intermed.X) / (p2.X - p1.X);
-            double k2 = (intermed.X - p1.X) / (p2.X - p1.X);
-
-            double intencity = k1 * p1.Intensity + k2 * p2.Intensity;
-            return new Pixel(intencity, intermed.X, p1.Y);
-        }
-        private Pixel GetIntermediateVertical(Pixel p1, Pixel p2, Vector intermed)
-        {
-            if (p1.X != p2.X)
-                throw new Exception("Pixels must be on one vertical line");
-
-            if (!((p1.Y <= intermed.Y && intermed.Y <= p2.Y) || (p2.Y <= intermed.Y && intermed.Y <= p1.Y)))
-                throw new Exception("intermed is not between p1 and p2");
-
-            double k1 = (p2.Y - intermed.Y) / (p2.Y - p1.Y);
-            double k2 = (intermed.X - p1.Y) / (p2.Y - p1.Y);
-
-            double intencity = k1 * p1.Intensity + k2 * p2.Intensity;
-            return new Pixel(intencity, intermed.X, intermed.Y);
-        }
     }
 }
