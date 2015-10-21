@@ -32,7 +32,7 @@ namespace ImageToGCode.Engine
 
         public Pixel GetPixel(int x, int y)
         {
-            if (x < 0 | y < 0 | x >= Width | y >= Height)
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
                 return null;
             return _pixels[x, y];
         }
