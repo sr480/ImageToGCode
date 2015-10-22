@@ -31,7 +31,7 @@ namespace ImageToGCode.Engine
             _LineRes = lineRes;
             _Height = height;
             _Width = width;
-            _image = new Image(bitmap);
+            _image = new Image(width, height, bitmap, new Interpolators.BilinearInterpolator());
         }
 
         public ImageByLinesPresenter CreatePresenter()

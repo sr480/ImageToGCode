@@ -55,17 +55,20 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Configuration.cs" />
-    <Compile Include="Engine\BilinearInterpolator.cs" />
+    <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />
     <Compile Include="Engine\AngleToVector.cs" />
-    <Compile Include="Engine\IInterpolator.cs" />
+    <Compile Include="Engine\Geometry\Line.cs" />
+    <Compile Include="Engine\Interpolators\IInterpolator.cs" />
     <Compile Include="Engine\ImageByLinesPresenter.cs" />
-    <Compile Include="Engine\Line.cs" />
+    <Compile Include="Engine\Interpolators\InterpolateHelper.cs" />
+    <Compile Include="Engine\ImageLine.cs" />
     <Compile Include="Engine\Image.cs" />
     <Compile Include="Engine\ImageProcessor.cs" />
+    <Compile Include="Engine\Visualisers\BitmapExtensions.cs" />
     <Compile Include="Engine\Visualisers\LinesVisualiser.cs" />
     <Compile Include="Engine\Pixel.cs" />
-    <Compile Include="Engine\StepInterpolator.cs" />
-    <Compile Include="Engine\Vector.cs" />
+    <Compile Include="Engine\Interpolators\StepInterpolator.cs" />
+    <Compile Include="Engine\Geometry\Vector.cs" />
     <Compile Include="Engine\Visualisers\Visualiser.cs" />
     <Compile Include="Engine\Visualisers\VisualLine.cs" />
     <Compile Include="GCodeGenerator.cs" />

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,8 +24,14 @@ namespace ImageToGCode.Engine.Visualisers
         public void Visualise()
         {
             Lines.Clear();
+            int lpos = 0;
+            int lSimpl = GetSimplificationK();
             foreach (var line in _Presenter.Lines)
             {
+                lpos++;
+                if (lpos % lSimpl != 0)
+                    continue;
+
                 if (line.Pixels.Count < 2)
                     continue;
                 Pixel start = line.Pixels[0];
@@ -40,19 +47,33 @@ namespace ImageToGCode.Engine.Visualisers
                 Lines.Add(new VisualLine(start, line.Pixels[line.Pixels.Count - 1], 1 - start.Intensity));
             }
         }
-
-        public Bitmap Render()
+        private int GetSimplificationK()
         {
-            Bitmap bm = new Bitmap(_Presenter.Image.Width, _Presenter.Image.Height);
-            foreach (var line in _Presenter.Lines)
-            {
-                foreach (var p in line.Pixels)
-                {
-                    byte gcIntence = (byte)(255 * p.Intensity);
-                    bm.SetPixel((int)Math.Round(p.X), (int)Math.Round(p.Y), Color.FromArgb(gcIntence, gcIntence, gcIntence));
-                }
-            }
-            return bm;
+            if (_Presenter.LineResolution < 4)
+                return (int)(4/_Presenter.LineResolution);
+            return 1;
         }
+
+        //public Bitmap Render()
+        //{
+        //    //Bitmap bm = new Bitmap(_Presenter.Image.Width, _Presenter.Image.Height);
+        //    //Graphics gr = Graphics.FromImage(bm);
+        //    //gr.InterpolationMode = InterpolationMode.Bilinear;
+        //    //gr.CompositingQuality = CompositingQuality.HighQuality;
+        //    //gr.SmoothingMode = SmoothingMode.AntiAlias;
+
+        //    //Visualise();
+
+        //    //foreach(var ln in Lines)
+        //    //{
+        //    //    Point p1 = new Point((int)Math.Round(ln.V1.X), bm.Height - (int)Math.Round(ln.V1.Y) - 1);
+        //    //    Point p2 = new Point((int)Math.Round(ln.V2.X), bm.Height - (int)Math.Round(ln.V2.Y) - 1);
+        //    //    byte gcIntence = (byte)(255 - 255 * ln.Intensity);
+        //    //    gr.DrawLine(new Pen(new SolidBrush(Color.FromArgb(gcIntence, gcIntence, gcIntence)), 1), p1, p2);
+        //    //}
+
+        //    //gr.Dispose();
+        //    //return bm;
+        //}
     }
 }

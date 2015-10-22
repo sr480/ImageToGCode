@@ -87,25 +87,14 @@ namespace ImageToGCode.Engine.Visualisers
         {
             if (Data == null || Data.Lines.Count == 0)
                 return;
-
             foreach (var vline in Data.Lines)
             {
                 Point start = new Point(vline.V1.X * Magnification, this.ActualHeight - vline.V1.Y * Magnification);
                 Point end = new Point(vline.V2.X * Magnification, this.ActualHeight - vline.V2.Y * Magnification);
                 byte gcIntence = (byte)(255 - 255 * vline.Intensity);
 
-                dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);
-                //dc.DrawLine(pens[gcIntence], start, end);
+                dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);                
             }
-            //var bmp = Data.Render();
-            //var ScreenCapture = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-            //    bmp.GetHbitmap(),
-            //    IntPtr.Zero,
-            //    System.Windows.Int32Rect.Empty,
-            //    BitmapSizeOptions.FromWidthAndHeight(bmp.Width, bmp.Height));
-            //var r = new Rect(0,0,bmp.Width, bmp.Height);
-            //dc.DrawImage(ScreenCapture, r);
-            base.OnRender(dc);
         }
     }
 }
