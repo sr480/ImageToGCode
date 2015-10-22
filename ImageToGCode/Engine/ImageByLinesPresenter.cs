@@ -18,6 +18,7 @@ namespace ImageToGCode.Engine
                 return _Image;
             }
         }
+        public double LineResolution { get; private set; }
         public List<ImageLine> Lines { get { return _Lines; } }
 
         public ImageByLinesPresenter(Image image)
@@ -28,6 +29,7 @@ namespace ImageToGCode.Engine
 
         public void Present(Vector normalVector, double lineResolution, double pointResolution)
         {
+            LineResolution = lineResolution;
             Lines.Clear();
 
             Vector vectorIncrement = normalVector.Normalize() * lineResolution;
@@ -37,15 +39,15 @@ namespace ImageToGCode.Engine
             Vector currentVector;
             if (vectorIncrement.X < 0) //для углов 91-180 рисуем, начиная с левого верхнего края - координата (0, Ymax)
             {
-                startingPoint = new Vector(0, Image.Height - 1);
-                endPoint = new Vector(Image.Width - 1, 0);
+                startingPoint = new Vector(0, Image.Height);
+                endPoint = new Vector(Image.Width, 0);
                 vectorIncrement = vectorIncrement.Reverse();
                 currentVector = Line.GetIntersection(new Line(vectorIncrement, startingPoint), new Line(new Vector(-vectorIncrement.Y, vectorIncrement.X), new Vector(0, 0)));
             }
             else // для углов 0-90 с точки (0,0)
             {
                 startingPoint = new Vector(0, 0);
-                endPoint = new Vector(Image.Width - 1, Image.Height - 1);
+                endPoint = new Vector(Image.Width, Image.Height);
                 currentVector = vectorIncrement;
             }
 

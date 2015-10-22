@@ -12,63 +12,54 @@ namespace ImageToGCode.Engine.Interpolators
     /// </summary>
     class BilinearInterpolator : IInterpolator
     {
-        public Pixel GetPixel(Image image, Vector position)
+        public bool TryGetIntensity(Image image, double x, double y, out double intesity)
         {
-            if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
-                //throw new Exception("Point is out of dimension");
-                return null;
-
+            if (x > image.ImageWidth - 1 || y > image.ImageHeight - 1 || x < 0 || y < 0)
+            {
+                intesity = 0.0;
+                return false;
+            }
             
-            int x0 = (int)position.X;
-            int y0 = (int)position.Y;
+            int x0 = (int)x;
+            int y0 = (int)y;
 
-            Pixel p01 = image.GetPixel(x0, y0 + 1);
-            Pixel p11 = image.GetPixel(x0 + 1, y0 + 1);
-            Pixel p10 = image.GetPixel(x0 + 1, y0);
-            Pixel p00 = image.GetPixel(x0, y0);
+            Pixel p01 = image.GetImagePixel(x0, y0 + 1);
+            Pixel p11 = image.GetImagePixel(x0 + 1, y0 + 1);
+            Pixel p10 = image.GetImagePixel(x0 + 1, y0);
+            Pixel p00 = image.GetImagePixel(x0, y0);
 
-            if(p00==null || p01==null || p10==null || p11 == null)
-                return LinearInterpolate(p00 ?? p01 ?? p10 ?? p11, p11 ?? p10 ?? p01 ?? p00, position);
+            if (p00 == null || p01 == null || p10 == null || p11 == null)
+            {
+                intesity = LinearInterpolate(p00 ?? p01 ?? p10 ?? p11, p11 ?? p10 ?? p01 ?? p00, x, y);
+                return true;
+            }
 
-            var k1 = (x0 + 1 - position.X) * (y0 + 1 - position.Y);
-            var k2 = (position.X - x0) * (y0 + 1 - position.Y);
-            var k3 = (x0 + 1 - position.X) * (position.Y - y0);
-            var k4 = (position.X - x0) * (position.Y - y0);
+            var k1 = (x0 + 1 - x) * (y0 + 1 - y);
+            var k2 = (x - x0) * (y0 + 1 - y);
+            var k3 = (x0 + 1 - x) * (y - y0);
+            var k4 = (x - x0) * (y - y0);
 
             var color = k1 * p00.Intensity + k2 * p10.Intensity + k3 * p01.Intensity + k4 * p11.Intensity;
 
-            //var color = ((x0 + 1 - position.X) * (y0 + 1 - position.Y)) * p00.Intensity + ((position.X - x0) * (y0 + 1 - position.Y)) * p10.Intensity + ((x0 + 1 - position.X) * (position.Y - y0)) * p01.Intensity + ((position.X - x0) * (position.Y - y0)) * p11.Intensity;
+            //var color = ((x0 + 1 - x) * (y0 + 1 - y)) * p00.Intensity + ((x - x0) * (y0 + 1 - y)) * p10.Intensity + ((x0 + 1 - x) * (y - y0)) * p01.Intensity + ((x - x0) * (y - y0)) * p11.Intensity;
 
-
-            return new Pixel(color, position.X, position.Y);
+            intesity = color;
+            return true;
         }
 
         
         //эта штука нужна, если мы попали на границу нашей картинки. Мы не можем взять 4 точки для интерполяции, поэтому берём только две
-        private Pixel LinearInterpolate(Pixel first, Pixel second, Vector position)
+        private double LinearInterpolate(Pixel first, Pixel second, double x, double y)
         {
-            var result = new Pixel(position.X, position.Y);
-
-            
             if (first == null || second == null)//если вдруг мы попали в угол картинки. У нас не будет даже двух точек - будет всего одна
-            {
-                result.Intensity = (first ?? second).Intensity;
-                return result;
-            }
-            
-            
+                return (first ?? second).Intensity;
 
             if (first.Y == second.Y)
-            {
-                result.Intensity = (second.X - position.X) * first.Intensity + (position.X - first.X) * second.Intensity;
-            }
-            else if (first.X == second.X)
-                result.Intensity = (second.Y - position.Y) * first.Intensity + (position.Y - first.Y) * second.Intensity;
+                return Math.Abs((second.X - x) * first.Intensity + (x - first.X) * second.Intensity);
+            if (first.X == second.X)
+                return Math.Abs((second.Y - y) * first.Intensity + (y - first.Y) * second.Intensity);
 
-            if (result.Intensity < 0)
-                result.Intensity *= -1;
-
-            return result;
+            throw new Exception("Somthing wrong :)");
         }
 
 
