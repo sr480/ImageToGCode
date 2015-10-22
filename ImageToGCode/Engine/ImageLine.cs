@@ -56,22 +56,27 @@ namespace ImageToGCode.Engine
             }
         }
 
-        private Vector GetFirstVector()
+        private Vector GetFirstVector() // можно потом переделать...
         {
+            if(B == 0)
+            {
+                return new Vector(-C / A, 0);
+            }
+            
             double x = 0.0;
             double y = GetY(x);
 
 
-            if (y > _Image.Height)
-            {
-                y = _Image.Height;
-                x = GetX(y);
-            }
-            else if (y < 0)
-            {
-                y = 0;
-                x = GetX(y);
-            }
+                if (y > _Image.Height)
+                {
+                    y = _Image.Height;
+                    x = GetX(y);
+                }
+                else if (y < 0)
+                {
+                    y = 0;
+                    x = GetX(y);
+                }
 
             return new Vector(x, y);
 
