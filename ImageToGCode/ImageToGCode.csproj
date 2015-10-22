@@ -55,6 +55,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Configuration.cs" />
+    <Compile Include="Engine\GCodeGeneration\IdleStroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\Stroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\StrokesFromImageLinesGenerator.cs" />
     <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />
     <Compile Include="Engine\AngleToVector.cs" />
     <Compile Include="Engine\Geometry\Line.cs" />
