@@ -64,6 +64,7 @@
     <Compile Include="Engine\ImageLine.cs" />
     <Compile Include="Engine\Image.cs" />
     <Compile Include="Engine\ImageProcessor.cs" />
+    <Compile Include="Engine\Visualisers\BitmapExtensions.cs" />
     <Compile Include="Engine\Visualisers\LinesVisualiser.cs" />
     <Compile Include="Engine\Pixel.cs" />
     <Compile Include="Engine\Interpolators\StepInterpolator.cs" />
