@@ -9,12 +9,15 @@ namespace ImageToGCode.Engine.Interpolators
 {
     class StepInterpolator : IInterpolator
     {
-        public Pixel GetPixel(Image image, Vector position)
+        public bool TryGetIntensity(Image image, double x, double y, out double intesity)
         {
-            if (position.X > image.Width - 1 || position.Y > image.Height - 1 || position.X < 0 || position.Y < 0)
-                return null;
-
-            return new Pixel(image.GetPixel((int)Math.Round(position.X), (int)Math.Round(position.Y)).Intensity, position);
+            if (x > image.ImageWidth - 1 || y > image.ImageHeight - 1 || x < 0 || y < 0)
+            {
+                intesity = 0.0;
+                return false;
+            }
+            intesity = image.GetImagePixel((int)Math.Round(x), (int)Math.Round(y)).Intensity;
+            return true;
         }
 
     }

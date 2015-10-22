@@ -47,12 +47,12 @@ namespace ImageToGCode.Engine
             IInterpolator inter = InterpolateHelper.CurrentInterpolator;
 
             //наполняем пикселями
-            Pixel temp = inter.GetPixel(_Image, currentVector);
+            Pixel temp = _Image.GetPixel(currentVector.X, currentVector.Y);//inter.GetPixel(_Image, currentVector);
             while (temp != null)
             {
                 _Pixels.Add(temp);
                 currentVector += directionVector;
-                temp = inter.GetPixel(_Image, currentVector);
+                temp = _Image.GetPixel(currentVector.X, currentVector.Y);//inter.GetPixel(_Image, currentVector);
             }
         }
 
@@ -62,9 +62,9 @@ namespace ImageToGCode.Engine
             double y = GetY(x);
 
 
-            if (y > _Image.Height - 1)
+            if (y > _Image.Height)
             {
-                y = _Image.Height - 1;
+                y = _Image.Height;
                 x = GetX(y);
             }
             else if (y < 0)

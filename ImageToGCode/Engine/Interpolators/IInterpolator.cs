@@ -9,6 +9,6 @@ namespace ImageToGCode.Engine.Interpolators
 {
     interface IInterpolator
     {
-        Pixel GetPixel(Image image, Vector position);
+        bool TryGetIntensity(Image image, double x, double y, out double intensity);
     }
 }
