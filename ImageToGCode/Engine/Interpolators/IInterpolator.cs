@@ -1,10 +1,11 @@
-﻿using System;
+﻿using ImageToGCode.Engine.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageToGCode.Engine
+namespace ImageToGCode.Engine.Interpolators
 {
     interface IInterpolator
     {
