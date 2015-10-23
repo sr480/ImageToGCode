@@ -41,16 +41,17 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
             foreach (var line in _Lines)
             {
-                int StrokeCountBeforeThisLine = Strokes.Count;
                 
                 if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
                     continue;//throw new Exception("Пока не придумал что с этим делать");
+
+                int strikesCount = Strokes.Count;
 
                 List<Pixel> pixels = GetPixels(line.Pixels, isReversed);
 
 
                 Pixel startPixel = null;
-                foreach (var pixel in line.Pixels)
+                foreach (var pixel in pixels)
                 {
                     if (startPixel == null)
                     {
@@ -75,11 +76,12 @@ namespace ImageToGCode.Engine.GCodeGeneration
                         Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
                     }
 
-                    AddAccelerationOrStopping(lastPixel, lastPixel - pixels[pixels.Count - 1]);
+                    AddAccelerationOrStopping(lastPixel, lastPixel - pixels[pixels.Count - 2]);
+
+                   
+                       
                 }
-
-
-                if (StrokeCountBeforeThisLine != StrokeCountBeforeThisLine)
+                if (strikesCount != Strokes.Count)
                     isReversed = !isReversed;
             }
         }
