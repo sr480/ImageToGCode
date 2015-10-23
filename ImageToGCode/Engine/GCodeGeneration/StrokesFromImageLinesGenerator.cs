@@ -13,6 +13,14 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
         public List<FreeMotionStroke> Strokes { get; private set; }
 
+        public double IdleDistance
+        {
+            get
+            {
+                return _IdleDistance;
+            }
+        }
+
         private double _IdleDistance;
         private bool _DoubleDirections;
         private bool _UseIdleZones;
@@ -46,7 +54,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 {
                     Vector startPoint;
 
-                    startPoint = pixels[0] + (pixels[0] - pixels[1]).Normalize() * _IdleDistance;
+                    startPoint = pixels[0] + (pixels[0] - pixels[1]).Normalize() * IdleDistance;
 
                     Strokes.Add(new FreeMotionStroke(startPoint));
                     Strokes.Add(new IdleStroke(pixels[0]));
@@ -76,13 +84,9 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 }
 
                 var beforeLastPixel = line.Pixels[line.Pixels.Count - 2];
-                var AddingVector = lastPixel - beforeLastPixel;
-                var endPoint = lastPixel + AddingVector;
-                
-                //Strokes.Add(new Stroke(endPoint, 1 - lastPixel.Intensity));
 
                 if (_UseIdleZones) //торможение
-                    Strokes.Add(new IdleStroke(endPoint + (endPoint - lastPixel).Normalize() * _IdleDistance));
+                    Strokes.Add(new IdleStroke(lastPixel + (lastPixel - beforeLastPixel).Normalize() * IdleDistance));
 
                 IsInverted = !IsInverted;
             }

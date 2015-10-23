@@ -28,7 +28,7 @@ namespace ImageToGCode
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            visual.Data = ((MainViewModel)DataContext).Visualiser;
+            visual.Data = ((MainViewModel)DataContext).StrokeGenerator;
         }
     }
 }

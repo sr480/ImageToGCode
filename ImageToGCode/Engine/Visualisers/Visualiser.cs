@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ImageToGCode.Engine.GCodeGeneration;
 
 namespace ImageToGCode.Engine.Visualisers
 {
@@ -46,9 +47,9 @@ namespace ImageToGCode.Engine.Visualisers
     /// </summary>
     class Visualiser : Canvas
     {
-        public LinesVisualiser Data
+        public object Data
         {
-            get { return (LinesVisualiser)GetValue(DataProperty); }
+            get { return GetValue(DataProperty); }
             set { SetValue(DataProperty, value); }
         }
 
@@ -68,7 +69,7 @@ namespace ImageToGCode.Engine.Visualisers
 
         // Using a DependencyProperty as the backing store for Data.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty DataProperty =
-            DependencyProperty.Register("Data", typeof(LinesVisualiser), typeof(Visualiser),
+            DependencyProperty.Register("Data", typeof(object), typeof(Visualiser),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, null, null));
 
         static Visualiser()
@@ -85,16 +86,63 @@ namespace ImageToGCode.Engine.Visualisers
         }
         protected override void OnRender(DrawingContext dc)
         {
-            if (Data == null || Data.Lines.Count == 0)
+            if (Data is LinesVisualiser)
+                VisualiseLines(dc);
+            if (Data is StrokesFromImageLinesGenerator)
+                VisualiseStrokes(dc);
+
+        }
+
+        private void VisualiseLines(DrawingContext dc)
+        {
+            if (Data == null || !(Data is LinesVisualiser) || ((LinesVisualiser)Data).Lines.Count == 0)
                 return;
-            foreach (var vline in Data.Lines)
+
+            var data = (LinesVisualiser)Data;
+            foreach (var vline in data.Lines)
             {
                 Point start = new Point(vline.V1.X * Magnification, this.ActualHeight - vline.V1.Y * Magnification);
                 Point end = new Point(vline.V2.X * Magnification, this.ActualHeight - vline.V2.Y * Magnification);
                 byte gcIntence = (byte)(255 - 255 * vline.Intensity);
 
-                dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);                
+                dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);
+            }            
+        }
+        private void VisualiseStrokes(DrawingContext dc)
+        {
+            if (Data == null || !(Data is StrokesFromImageLinesGenerator) || ((StrokesFromImageLinesGenerator)Data).Strokes.Count == 0)
+                return;
+
+            var data = (StrokesFromImageLinesGenerator)Data;
+
+            FreeMotionStroke firstStroke = data.Strokes[0];
+
+            for (int i = 1; i < data.Strokes.Count; i++)
+            {
+                FreeMotionStroke curStroke = data.Strokes[i];
+                Point start = new Point((firstStroke.DestinationPoint.X + data.IdleDistance) * Magnification,
+                    this.ActualHeight - (firstStroke.DestinationPoint.Y + data.IdleDistance) * Magnification);
+
+                Point end = new Point((curStroke.DestinationPoint.X + data.IdleDistance) * Magnification,
+                    this.ActualHeight - (curStroke.DestinationPoint.Y + data.IdleDistance) * Magnification);
+
+                dc.DrawLine(new Pen(new SolidColorBrush(StrokeToColor(curStroke)), 1.0), start, end);
+
+                firstStroke = curStroke;
             }
+        }
+
+        private Color StrokeToColor(FreeMotionStroke stroke)
+        {
+            if (stroke is IdleStroke)
+                return Colors.BlueViolet;
+            if (stroke is Stroke)
+            {
+                byte gcIntence = (byte)(255 - 255 * ((Stroke)stroke).Intensity);
+                return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
+            }
+            
+            return Colors.HotPink;
         }
     }
 }
