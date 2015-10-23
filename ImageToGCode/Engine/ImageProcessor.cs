@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageToGCode.Engine.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,7 +39,11 @@ namespace ImageToGCode.Engine
         {
             var ip = new ImageByLinesPresenter(_image);
 
-            ip.Present(AngleToVector.GetNormal(AngleToVector.DegToRad(_Angle)), _LineRes, _PointRes);
+            var angleInRadian = AngleToVector.DegToRad(_Angle);
+            var mathVector = AngleToVector.GetNormal(angleInRadian);
+            var resultingVector = new Vector(Math.Round(mathVector.X, 6), Math.Round(mathVector.Y, 6));
+
+            ip.Present(resultingVector, _LineRes, _PointRes);
 
             return ip;
         }
