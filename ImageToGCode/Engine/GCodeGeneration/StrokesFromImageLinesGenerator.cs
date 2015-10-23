@@ -37,60 +37,75 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
         public void GenerateStrokes()
         {
-            bool IsInverted = false;
+            bool isReversed = false;
 
             foreach (var line in _Lines)
             {
+                int StrokeCountBeforeThisLine = Strokes.Count;
+                
                 if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
                     continue;//throw new Exception("Пока не придумал что с этим делать");
 
-                List<Pixel> pixels;
-                if (_DoubleDirections && IsInverted)
-                    pixels = ((IEnumerable<Pixel>)line.Pixels).Reverse().ToList(); //пока так..потом подумать
-                else
-                    pixels = line.Pixels;
+                List<Pixel> pixels = GetPixels(line.Pixels, isReversed);
 
-                if (_UseIdleZones) //разгон
-                {
-                    Vector startPoint;
-
-                    startPoint = pixels[0] + (pixels[0] - pixels[1]).Normalize() * IdleDistance;
-
-                    Strokes.Add(new FreeMotionStroke(startPoint));
-                    Strokes.Add(new IdleStroke(pixels[0]));
-                }
-                else
-                    Strokes.Add(new FreeMotionStroke(pixels[0]));
 
                 Pixel startPixel = null;
                 foreach (var pixel in line.Pixels)
                 {
                     if (startPixel == null)
-                        startPixel = pixel;
-                    else
                     {
-                        if (Math.Abs(pixel.Intensity - startPixel.Intensity) > SameIntensity)
+                        if (pixel.Intensity != 1)
                         {
-                            Strokes.Add(new Stroke(pixel, 1 - startPixel.Intensity));
                             startPixel = pixel;
+                            AddAccelerationOrStopping(startPixel, pixels[0] - pixels[1]);
                         }
+                    }
+                    else if(Math.Abs(pixel.Intensity - startPixel.Intensity) > SameIntensity)
+                    {
+                        Strokes.Add(new Stroke(pixel, 1 - startPixel.Intensity));
+                        startPixel = pixel;
                     }
                 }
 
-                var lastPixel = line.Pixels[line.Pixels.Count - 1];
-                if (startPixel != lastPixel)
+                if(startPixel != null)
                 {
-                    Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
+                    var lastPixel = pixels[pixels.Count - 1];
+                    if (startPixel != lastPixel)
+                    {
+                        Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
+                    }
+
+                    AddAccelerationOrStopping(lastPixel, lastPixel - pixels[pixels.Count - 1]);
                 }
 
-                var beforeLastPixel = line.Pixels[line.Pixels.Count - 2];
 
-                if (_UseIdleZones) //торможение
-                    Strokes.Add(new IdleStroke(lastPixel + (lastPixel - beforeLastPixel).Normalize() * IdleDistance));
-
-                IsInverted = !IsInverted;
+                if (StrokeCountBeforeThisLine != StrokeCountBeforeThisLine)
+                    isReversed = !isReversed;
             }
         }
+
+        private List<Pixel> GetPixels(List<Pixel> pixels, bool isReverse)
+        {
+            if (_DoubleDirections && isReverse)
+                return ((IEnumerable<Pixel>)pixels).Reverse().ToList(); //пока так..потом подумать
+            return pixels;
+        }
+
+        private void AddAccelerationOrStopping(Pixel firstPixel, Vector direction)
+        {
+            if (_UseIdleZones) //разгон
+            {
+                Vector startPoint;
+
+                startPoint = firstPixel + direction.Normalize() * IdleDistance;
+
+                Strokes.Add(new FreeMotionStroke(startPoint));
+                Strokes.Add(new IdleStroke(firstPixel));
+            }
+            else
+                Strokes.Add(new FreeMotionStroke(firstPixel));
+        }
+
 
         private const double SameIntensity = 0.02;
     }
