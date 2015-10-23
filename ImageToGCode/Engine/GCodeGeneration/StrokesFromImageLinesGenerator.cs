@@ -45,7 +45,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 if (_UseIdleZones) //разгон
                 {
                     Vector startPoint;
-                    
+
                     startPoint = pixels[0] + (pixels[0] - pixels[1]).Normalize() * _IdleDistance;
 
                     Strokes.Add(new FreeMotionStroke(startPoint));
@@ -53,7 +53,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 }
                 else
                     Strokes.Add(new FreeMotionStroke(pixels[0]));
-                
+
                 Pixel startPixel = null;
                 foreach (var pixel in line.Pixels)
                 {
@@ -63,7 +63,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                     {
                         if (Math.Abs(pixel.Intensity - startPixel.Intensity) > SameIntensity)
                         {
-                            Strokes.Add(new Stroke(pixel, startPixel.Intensity));
+                            Strokes.Add(new Stroke(pixel, 1 - startPixel.Intensity));
                             startPixel = pixel;
                         }
                     }
@@ -72,13 +72,14 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 var lastPixel = line.Pixels[line.Pixels.Count - 1];
                 if (startPixel != lastPixel)
                 {
-                    Strokes.Add(new Stroke(lastPixel, startPixel.Intensity));
+                    Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
                 }
 
                 var beforeLastPixel = line.Pixels[line.Pixels.Count - 2];
                 var AddingVector = lastPixel - beforeLastPixel;
                 var endPoint = lastPixel + AddingVector;
-                Strokes.Add(new Stroke(endPoint, lastPixel.Intensity));
+                
+                //Strokes.Add(new Stroke(endPoint, 1 - lastPixel.Intensity));
 
                 if (_UseIdleZones) //торможение
                     Strokes.Add(new IdleStroke(endPoint + (endPoint - lastPixel).Normalize() * _IdleDistance));
@@ -86,7 +87,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 IsInverted = !IsInverted;
             }
         }
-        
+
         private const double SameIntensity = 0.02;
     }
 }

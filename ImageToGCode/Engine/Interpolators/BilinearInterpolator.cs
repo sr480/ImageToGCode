@@ -63,5 +63,11 @@ namespace ImageToGCode.Engine.Interpolators
         }
 
 
+
+
+        public string Description
+        {
+            get { return "Билинейная интерполяция"; }
+        }
     }
 }
