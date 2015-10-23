@@ -55,7 +55,13 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Configuration.cs" />
+    <Compile Include="Engine\GCodeGeneration\BaseMotion.cs" />
+    <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
+    <Compile Include="Engine\GCodeGeneration\GCodeGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\IdleStroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\MotionFactory.cs" />
+    <Compile Include="Engine\GCodeGeneration\NewLineStroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\RapidMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\Stroke.cs" />
     <Compile Include="Engine\GCodeGeneration\StrokesFromImageLinesGenerator.cs" />
     <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />

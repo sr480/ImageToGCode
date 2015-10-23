@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageToGCode.Engine.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,18 +11,20 @@ namespace ImageToGCode.Engine.GCodeGeneration
     {
         private List<ImageLine> _Lines;
 
-        public List<Stroke> Strokes { get; private set; }
+        public List<FreeMotionStroke> Strokes { get; private set; }
 
         private double _IdleDistance;
         private bool _DoubleDirections;
-        
-        public StrokesFromImageLinesGenerator(List<ImageLine> lines, double idleDistance, bool doubleDirections)
+        private bool _UseIdleZones;
+
+        public StrokesFromImageLinesGenerator(List<ImageLine> lines, bool useIdleZones, double idleDistance, bool doubleDirections)
         {
             _Lines = lines;
-            Strokes = new List<Stroke>();
+            Strokes = new List<FreeMotionStroke>();
 
             _IdleDistance = idleDistance;
             _DoubleDirections = doubleDirections;
+            _UseIdleZones = useIdleZones;
         }
 
         public void GenerateStrokes()
@@ -31,16 +34,25 @@ namespace ImageToGCode.Engine.GCodeGeneration
             foreach (var line in _Lines)
             {
                 if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
-                    throw new Exception("Пока не придумал что с этим делать");
+                    continue;//throw new Exception("Пока не придумал что с этим делать");
 
-                
                 List<Pixel> pixels;
                 if (_DoubleDirections && IsInverted)
-                     pixels = ((IEnumerable<Pixel>)line.Pixels).Reverse().ToList(); //пока так..потом подумать
+                    pixels = ((IEnumerable<Pixel>)line.Pixels).Reverse().ToList(); //пока так..потом подумать
                 else
                     pixels = line.Pixels;
-                    
-                Strokes.Add(new IdleStroke(pixels[0], pixels[1], _IdleDistance));//разгон
+
+                if (_UseIdleZones) //разгон
+                {
+                    Vector startPoint;
+
+                    startPoint = pixels[0] + (pixels[0] - pixels[1]).Normalize() * _IdleDistance;
+
+                    Strokes.Add(new FreeMotionStroke(startPoint));
+                    Strokes.Add(new IdleStroke(pixels[0]));
+                }
+                else
+                    Strokes.Add(new FreeMotionStroke(pixels[0]));
 
                 Pixel startPixel = null;
                 foreach (var pixel in line.Pixels)
@@ -49,27 +61,28 @@ namespace ImageToGCode.Engine.GCodeGeneration
                         startPixel = pixel;
                     else
                     {
-                        if(Math.Abs(pixel.Intensity - startPixel.Intensity) > SameIntensity)
+                        if (Math.Abs(pixel.Intensity - startPixel.Intensity) > SameIntensity)
                         {
-                            Strokes.Add(new Stroke(startPixel, pixel, startPixel.Intensity));
+                            Strokes.Add(new Stroke(pixel, 1 - startPixel.Intensity));
                             startPixel = pixel;
                         }
                     }
-
                 }
 
                 var lastPixel = line.Pixels[line.Pixels.Count - 1];
                 if (startPixel != lastPixel)
                 {
-                    Strokes.Add(new Stroke(startPixel, lastPixel, startPixel.Intensity));
+                    Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
                 }
 
                 var beforeLastPixel = line.Pixels[line.Pixels.Count - 2];
                 var AddingVector = lastPixel - beforeLastPixel;
                 var endPoint = lastPixel + AddingVector;
-                Strokes.Add(new Stroke(lastPixel, endPoint, lastPixel.Intensity));
+                
+                //Strokes.Add(new Stroke(endPoint, 1 - lastPixel.Intensity));
 
-                Strokes.Add(new IdleStroke(endPoint, lastPixel, _IdleDistance));
+                if (_UseIdleZones) //торможение
+                    Strokes.Add(new IdleStroke(endPoint + (endPoint - lastPixel).Normalize() * _IdleDistance));
 
                 IsInverted = !IsInverted;
             }
