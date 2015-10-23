@@ -10,5 +10,6 @@ namespace ImageToGCode.Engine.Interpolators
     interface IInterpolator
     {
         bool TryGetIntensity(Image image, double x, double y, out double intensity);
+        string Description { get; }
     }
 }

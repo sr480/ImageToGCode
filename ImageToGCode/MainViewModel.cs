@@ -15,8 +15,10 @@ namespace ImageToGCode
     class MainViewModel : INotifyPropertyChanged
     {
         #region Fields
+        private Engine.Interpolators.IInterpolator _SelectedInterpolator;
         private Engine.Visualisers.LinesVisualiser _Visualiser;
         private Engine.ImageByLinesPresenter _Presenter;
+        private List<Engine.Interpolators.IInterpolator> _InterpolatorsSource;
         private double _Angle = 45;
         private double _Feed = 400;
         private bool _EngraveBothDirection = true;
@@ -187,6 +189,27 @@ namespace ImageToGCode
                 CountHeight(Width);
             }
         }
+        public List<Engine.Interpolators.IInterpolator> InterpolatorsSource
+        {
+            get
+            {
+                return _InterpolatorsSource;
+            }
+        }
+        public Engine.Interpolators.IInterpolator SelectedInterpolator
+        {
+            get
+            {
+                return _SelectedInterpolator;
+            }
+            set
+            {
+                if (_SelectedInterpolator == value)
+                    return;
+                _SelectedInterpolator = value;
+                OnPropertyChanged("SelectedInterpolator");
+            }
+        }
         #endregion
 
         public Engine.ImageByLinesPresenter Presenter
@@ -235,6 +258,10 @@ namespace ImageToGCode
             Generate = new Command((x) => GenerateAction(), (x) => _Bitmap != null);
             OpenImage = new Command((x) => OpenImageAction(), (x) => true);
             Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
+            _InterpolatorsSource = new List<Engine.Interpolators.IInterpolator>();
+            InterpolatorsSource.Add(new Engine.Interpolators.StepInterpolator());
+            InterpolatorsSource.Add(new Engine.Interpolators.BilinearInterpolator());
+            SelectedInterpolator = InterpolatorsSource[0];
         }
         #region Command implements
         private void OpenImageAction()
@@ -256,7 +283,7 @@ namespace ImageToGCode
         }
         private void GenerateAction()
         {
-            var processor = new Engine.ImageProcessor(_Bitmap, Width, Height, LineResolution, PointResolution, Angle);
+            var processor = new Engine.ImageProcessor(_Bitmap, Width, Height, LineResolution, PointResolution, Angle, SelectedInterpolator);
             Presenter = processor.CreatePresenter();
 
             Visualiser = new Engine.Visualisers.LinesVisualiser(Presenter);

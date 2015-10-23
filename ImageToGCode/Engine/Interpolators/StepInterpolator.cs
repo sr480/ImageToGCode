@@ -20,5 +20,11 @@ namespace ImageToGCode.Engine.Interpolators
             return true;
         }
 
+
+
+        public string Description
+        {
+            get { return "Метод ближайшего соседа"; }
+        }
     }
 }

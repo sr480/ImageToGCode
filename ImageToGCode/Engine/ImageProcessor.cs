@@ -15,7 +15,7 @@ namespace ImageToGCode.Engine
         private readonly double _PointRes;
         private readonly double _Angle;
 
-        public ImageProcessor(System.Drawing.Bitmap bitmap, double width, double height, double lineRes, double pointRes, double angle)
+        public ImageProcessor(System.Drawing.Bitmap bitmap, double width, double height, double lineRes, double pointRes, double angle, Interpolators.IInterpolator interpolator)
         {
             if (width < 0)
                 throw new Exception("Width can not be negative");
@@ -31,7 +31,7 @@ namespace ImageToGCode.Engine
             _LineRes = lineRes;
             _Height = height;
             _Width = width;
-            _image = new Image(width, height, bitmap, new Interpolators.BilinearInterpolator());
+            _image = new Image(width, height, bitmap, interpolator);
         }
 
         public ImageByLinesPresenter CreatePresenter()
