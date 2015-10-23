@@ -45,7 +45,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
                     continue;//throw new Exception("Пока не придумал что с этим делать");
 
-                int strikesCount = Strokes.Count;
+                int strokesCount = Strokes.Count;
 
                 List<Pixel> pixels = GetPixels(line.Pixels, isReversed);
 
@@ -58,10 +58,10 @@ namespace ImageToGCode.Engine.GCodeGeneration
                         if (pixel.Intensity != 1)
                         {
                             startPixel = pixel;
-                            AddAccelerationOrStopping(startPixel, pixels[0] - pixels[1]);
+                            AddLineStarAndAcceleration(startPixel, pixels[0] - pixels[1]);
                         }
                     }
-                    else if(Math.Abs(pixel.Intensity - startPixel.Intensity) > SameIntensity)
+                    else if(Math.Abs(pixel.Intensity - startPixel.Intensity) > SAME_INTENSITY)
                     {
                         Strokes.Add(new Stroke(pixel, 1 - startPixel.Intensity));
                         startPixel = pixel;
@@ -72,16 +72,12 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 {
                     var lastPixel = pixels[pixels.Count - 1];
                     if (startPixel != lastPixel)
-                    {
                         Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
-                    }
-
-                    AddAccelerationOrStopping(lastPixel, lastPixel - pixels[pixels.Count - 2]);
-
-                   
-                       
+                    
+                    AddLineEndAndDeacceleration(lastPixel, lastPixel - pixels[pixels.Count - 2]);
                 }
-                if (strikesCount != Strokes.Count)
+
+                if (strokesCount != Strokes.Count)
                     isReversed = !isReversed;
             }
         }
@@ -93,13 +89,11 @@ namespace ImageToGCode.Engine.GCodeGeneration
             return pixels;
         }
 
-        private void AddAccelerationOrStopping(Pixel firstPixel, Vector direction)
+        private void AddLineStarAndAcceleration(Pixel firstPixel, Vector direction)
         {
-            if (_UseIdleZones) //разгон
+            if (_UseIdleZones)
             {
-                Vector startPoint;
-
-                startPoint = firstPixel + direction.Normalize() * IdleDistance;
+                Vector startPoint = firstPixel + direction.Normalize() * IdleDistance;
 
                 Strokes.Add(new FreeMotionStroke(startPoint));
                 Strokes.Add(new IdleStroke(firstPixel));
@@ -107,8 +101,11 @@ namespace ImageToGCode.Engine.GCodeGeneration
             else
                 Strokes.Add(new FreeMotionStroke(firstPixel));
         }
+        private void AddLineEndAndDeacceleration(Vector lastPixel, Vector direction)
+        {
+            if (_UseIdleZones) Strokes.Add(new IdleStroke(lastPixel + direction.Normalize() * IdleDistance));
+        }
 
-
-        private const double SameIntensity = 0.02;
+        private const double SAME_INTENSITY = 0.02;
     }
 }
