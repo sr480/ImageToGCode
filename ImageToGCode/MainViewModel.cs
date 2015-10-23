@@ -188,6 +188,7 @@ namespace ImageToGCode
             }
         }
         #endregion
+
         public Engine.ImageByLinesPresenter Presenter
         {
             get
@@ -230,6 +231,7 @@ namespace ImageToGCode
         public MainViewModel()
         {
             _GCode = new ObservableCollection<string>();
+            _GCode.CollectionChanged += GCode_CollectionChanged;
             Generate = new Command((x) => GenerateAction(), (x) => _Bitmap != null);
             OpenImage = new Command((x) => OpenImageAction(), (x) => true);
             Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
@@ -260,13 +262,14 @@ namespace ImageToGCode
             Visualiser = new Engine.Visualisers.LinesVisualiser(Presenter);
             Visualiser.Visualise();
 
-            //var gen = new GCodeGenerator(Width, Height, LineResolution, FreeZone, Feed, EngraveBothDirection);
-            //var gCode = gen.Generate(_Bitmap);
-            //GCode.Clear();
+            var sg = new Engine.GCodeGeneration.StrokesFromImageLinesGenerator(Presenter.Lines, UseFreeZone, FreeZone, EngraveBothDirection);
+            sg.GenerateStrokes();
 
-            //foreach (var line in gCode)
-            //    GCode.Add(line);
-            //Save.RaiseCanExecuteChanged();
+            var gcGen = new Engine.GCodeGeneration.GCodeGenerator(sg.Strokes, (int)Feed, 80);
+            var gcode = gcGen.GenerateCode();
+            _GCode.Clear();
+            foreach (var str in gcode)
+                _GCode.Add(str);
         }
         private void SaveGCodeAction()
         {
@@ -292,6 +295,10 @@ namespace ImageToGCode
             }
         }
         #endregion
+        private void GCode_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            Save.RaiseCanExecuteChanged();
+        }
         private void CountWidth(double height)
         {
             Width = height * AspectRate;

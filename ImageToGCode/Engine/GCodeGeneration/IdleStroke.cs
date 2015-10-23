@@ -11,8 +11,8 @@ namespace ImageToGCode.Engine.GCodeGeneration
     {
         //closestPoint - ближайшая точка прямой 
         //pointForDirection - любая точка на линии разгона
-        public IdleStroke(Vector closestPoint, Vector pointForDirection, double distance)
-            : base(closestPoint + (closestPoint - pointForDirection).Normalize() * distance, closestPoint, 0)
+        public IdleStroke(Vector destination)
+            : base(destination, 0)
         {
 
         }
