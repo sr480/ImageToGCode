@@ -48,6 +48,10 @@
                             </ComboBox>
                         </HeaderedContentControl>
                         <CheckBox IsChecked="{Binding EngraveBothDirection}">Гравировка в обоих направлениях</CheckBox>
+                        <HeaderedContentControl Header="Расчетное время:">
+                            <TextBlock Text="{Binding EstimatedTime}"/>
+                        </HeaderedContentControl>
+
                         <Button Command="{Binding OpenImage}">Открыть изображение</Button>
                         <Button Command="{Binding Generate}">Генерировать</Button>
                         <Button Command="{Binding Save}">Сохранить</Button>
