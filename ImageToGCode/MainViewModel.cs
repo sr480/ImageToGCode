@@ -17,6 +17,8 @@ namespace ImageToGCode
         #region Fields
         private Engine.Interpolators.IInterpolator _SelectedInterpolator;
         private Engine.Visualisers.LinesVisualiser _Visualiser;
+        private Engine.GCodeGeneration.StrokesFromImageLinesGenerator _StrokeGenerator;
+
         private Engine.ImageByLinesPresenter _Presenter;
         private List<Engine.Interpolators.IInterpolator> _InterpolatorsSource;
         private double _Angle = 45;
@@ -240,6 +242,13 @@ namespace ImageToGCode
                 OnPropertyChanged("Visualiser");
             }
         }
+        public Engine.GCodeGeneration.StrokesFromImageLinesGenerator StrokeGenerator
+        {
+            get
+            {
+                return _StrokeGenerator;
+            }
+        }
         #region Commands
         public Command OpenImage { get; private set; }
         public Command Generate { get; private set; }
@@ -289,10 +298,10 @@ namespace ImageToGCode
             Visualiser = new Engine.Visualisers.LinesVisualiser(Presenter);
             Visualiser.Visualise();
 
-            var sg = new Engine.GCodeGeneration.StrokesFromImageLinesGenerator(Presenter.Lines, UseFreeZone, FreeZone, EngraveBothDirection);
-            sg.GenerateStrokes();
+            _StrokeGenerator = new Engine.GCodeGeneration.StrokesFromImageLinesGenerator(Presenter.Lines, UseFreeZone, FreeZone, EngraveBothDirection);
+            StrokeGenerator.GenerateStrokes();
 
-            var gcGen = new Engine.GCodeGeneration.GCodeGenerator(sg.Strokes, (int)Feed, 80);
+            var gcGen = new Engine.GCodeGeneration.GCodeGenerator(StrokeGenerator.Strokes, (int)Feed, 80);
             var gcode = gcGen.GenerateCode();
             _GCode.Clear();
             foreach (var str in gcode)
