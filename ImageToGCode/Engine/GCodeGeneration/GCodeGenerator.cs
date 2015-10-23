@@ -24,7 +24,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
             var result = new List<string>();
             MotionFactory mf = new MotionFactory();
 
-            result.Add("G20");
+            result.Add("G21");
             result.Add("G90");
             result.Add("M3 S0");
 
