@@ -36,6 +36,7 @@ namespace ImageToGCode
         private double _Width = 4;
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
         private Bitmap _Bitmap;
+        private TimeSpan _EstimatedTime;
         #endregion
         #region Properties: Input parameters
         public string PathToFile
@@ -77,6 +78,7 @@ namespace ImageToGCode
                 OnPropertyChanged("Height");
                 if (KeepAspectRatio)
                     CountWidth(value);
+                CountEstimatedTime();
             }
         }
 
@@ -89,6 +91,7 @@ namespace ImageToGCode
                     return;
                 _LineResolution = value;
                 OnPropertyChanged("LineResolution");
+                CountEstimatedTime();
             }
         }
         public double PointResolution
@@ -129,6 +132,7 @@ namespace ImageToGCode
                     return;
                 _UseFreeZone = value;
                 OnPropertyChanged("UseFreeZone");
+                CountEstimatedTime();
             }
         }
         public double FreeZone
@@ -140,6 +144,7 @@ namespace ImageToGCode
                     return;
                 _FreeZone = value;
                 OnPropertyChanged("FreeZone");
+                CountEstimatedTime();
             }
         }
 
@@ -152,6 +157,7 @@ namespace ImageToGCode
                     return;
                 _Feed = value;
                 OnPropertyChanged("Feed");
+                CountEstimatedTime();
             }
         }
 
@@ -172,7 +178,7 @@ namespace ImageToGCode
                     return;
                 _AspectRate = value;
                 OnPropertyChanged("AspectRate");
-                if(KeepAspectRatio)
+                if (KeepAspectRatio)
                     CountHeight(Width);
             }
         }
@@ -210,6 +216,20 @@ namespace ImageToGCode
                     return;
                 _SelectedInterpolator = value;
                 OnPropertyChanged("SelectedInterpolator");
+            }
+        }
+        public TimeSpan EstimatedTime
+        {
+            get
+            {
+                return _EstimatedTime;
+            }
+            set
+            {
+                if (_EstimatedTime == value)
+                    return;
+                _EstimatedTime = value;
+                RaisePropertyChanged("EstimatedTime");
             }
         }
         #endregion
@@ -331,6 +351,12 @@ namespace ImageToGCode
             }
         }
         #endregion
+        private void CountEstimatedTime()
+        {
+            double secs = ((Height / LineResolution) * (Width + (UseFreeZone ? FreeZone * 2 : 0))) / Feed * 60.0;
+            if(!double.IsInfinity(secs) & !double.IsNaN(secs))
+                EstimatedTime = TimeSpan.FromSeconds(Math.Round(secs));
+        }
         private void GCode_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             Save.RaiseCanExecuteChanged();
