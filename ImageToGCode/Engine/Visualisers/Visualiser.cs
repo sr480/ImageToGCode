@@ -138,6 +138,9 @@ namespace ImageToGCode.Engine.Visualisers
                 return Colors.BlueViolet;
             if (stroke is Stroke)
             {
+                if(((Stroke)stroke).Intensity == 0.0)
+                    return Colors.PaleGreen;
+
                 byte gcIntence = (byte)(255 - 255 * ((Stroke)stroke).Intensity);
                 return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
             }
