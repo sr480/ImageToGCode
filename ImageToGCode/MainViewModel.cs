@@ -393,7 +393,8 @@ namespace ImageToGCode
             Visualiser.Visualise();
 
             _StrokeGenerator = new Engine.GCodeGeneration.StrokesFromImageLinesGenerator(Presenter.Lines, UseFreeZone, FreeZone, EngraveBothDirection);
-            StrokeGenerator.GenerateStrokes();
+            //StrokeGenerator.GenerateStrokes();
+            StrokeGenerator.GenerateStrokesNEW();
 
             var gcGen = new Engine.GCodeGeneration.GCodeGenerator(StrokeGenerator.Strokes, (int)MinFeed, (int)Feed, MaxPower, MinPower);
             var gcode = gcGen.GenerateCode();

@@ -30,12 +30,120 @@ namespace ImageToGCode.Engine.GCodeGeneration
             _Lines = lines;
             Strokes = new List<FreeMotionStroke>();
 
-            _IdleDistance = idleDistance;
+            
+
+            if (!useIdleZones)
+                _IdleDistance = 0.0;
+            else
+                _IdleDistance = idleDistance;
+
             _DoubleDirections = doubleDirections;
             _UseIdleZones = useIdleZones;
         }
 
-        public void GenerateStrokes()
+        public void GenerateStrokesNEW()
+        {
+            bool isReversed = false;
+
+            foreach (var line in _Lines)
+            {
+                if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
+                    continue;//throw new Exception("Пока не придумал что с этим делать");
+
+                LinkedList<FreeMotionStroke> LineStrokes = new LinkedList<FreeMotionStroke>();
+
+
+                Pixel startPrintingPixel = null;
+                Pixel startPixel = null;
+                foreach (var pixel in line.Pixels)//цвет штриха всегда вычисляем в прямом порядке
+                {
+                    if (startPixel == null)
+                    {
+                        if (pixel.Intensity != 1)
+                        {
+                            startPixel = pixel;
+                            if (startPrintingPixel == null)
+                                startPrintingPixel = startPixel;
+                        }
+                    }
+                    else if (Math.Abs(pixel.Intensity - startPixel.Intensity) > SAME_INTENSITY)
+                    {
+                        if (_DoubleDirections && isReversed)
+                            LineStrokes.AddLast(new Stroke(startPixel, 1 - startPixel.Intensity));
+                        else
+                            LineStrokes.AddLast(new Stroke(pixel, 1 - startPixel.Intensity));
+
+                        startPixel = pixel;
+                    }
+                }
+
+
+
+                Pixel lastPixel = null;
+                if (startPixel != null)
+                {
+                    lastPixel = line.Pixels[line.Pixels.Count - 1];
+                    if (startPixel.Intensity == 1)
+                        lastPixel = startPixel;
+                    
+                    if (startPixel != lastPixel)
+                    {
+                        if (_DoubleDirections && isReversed)
+                            LineStrokes.AddLast(new Stroke(startPixel, 1 - startPixel.Intensity));
+                        else
+                            LineStrokes.AddLast(new Stroke(lastPixel, 1 - startPixel.Intensity));
+                    }
+                }
+
+
+                if (LineStrokes.Count != 0)
+                {
+                    if (_UseIdleZones)
+                    {
+                        if (_DoubleDirections && isReversed)
+                        {
+                            LineStrokes.AddFirst(new IdleStroke(LineStrokes.First.Value.DestinationPoint + (line.Pixels[0] - line.Pixels[1]).Normalize() * _IdleDistance));
+
+                            int lastIndex = line.Pixels.Count;
+                            LineStrokes.AddLast(new IdleStroke(lastPixel));
+                        }
+                        else
+                        {
+                            LineStrokes.AddFirst(new IdleStroke(startPrintingPixel));
+
+                            int lastIndex = line.Pixels.Count;
+                            LineStrokes.AddLast(new IdleStroke(LineStrokes.Last.Value.DestinationPoint + (line.Pixels[lastIndex - 1] - line.Pixels[lastIndex - 2]).Normalize() * _IdleDistance));
+                        }
+                        
+                        
+                    }
+
+                    IEnumerable<FreeMotionStroke> itemsToAdd;
+                    if (_DoubleDirections && isReversed)
+                    {
+                        int lastIndex = line.Pixels.Count;
+                        LineStrokes.AddLast(new FreeMotionStroke(lastPixel + (line.Pixels[lastIndex - 1] - line.Pixels[lastIndex - 2]).Normalize() * _IdleDistance));
+                        itemsToAdd = LineStrokes.Reverse();
+                    }
+                    else
+                    {
+                        LineStrokes.AddFirst(new FreeMotionStroke(LineStrokes.First.Value.DestinationPoint + (line.Pixels[0] - line.Pixels[1]).Normalize() * _IdleDistance));
+                        itemsToAdd = LineStrokes;
+                    }
+
+                    Strokes.AddRange(itemsToAdd);
+   
+                    isReversed = !isReversed;
+                }
+            }
+        }
+        
+        
+        
+        
+        
+        
+        /*public void GenerateStrokes()
         {
             bool isReversed = false;
 
@@ -107,7 +215,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
         private void AddLineEndAndDeacceleration(Vector lastPixel, Vector direction)
         {
             if (_UseIdleZones) Strokes.Add(new IdleStroke(lastPixel + direction.Normalize() * IdleDistance));
-        }
+        }*/
 
         private const double SAME_INTENSITY = 0.1;
     }
