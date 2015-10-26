@@ -59,7 +59,7 @@
     <Compile Include="Engine\GCodeGeneration\GCodeGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\IdleStroke.cs" />
     <Compile Include="Engine\GCodeGeneration\MotionFactory.cs" />
-    <Compile Include="Engine\GCodeGeneration\NewLineStroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\FreeMotionStroke.cs" />
     <Compile Include="Engine\GCodeGeneration\RapidMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\Stroke.cs" />
     <Compile Include="Engine\GCodeGeneration\StrokesFromImageLinesGenerator.cs" />

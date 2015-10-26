@@ -10,7 +10,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
     class FreeMotionStroke
     {
         public Vector DestinationPoint { get; private set; }
-
+        
         public FreeMotionStroke(Vector destinationPoint)
         {
             DestinationPoint = destinationPoint;
