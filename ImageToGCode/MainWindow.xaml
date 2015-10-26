@@ -80,6 +80,12 @@
             </TabItem>
         </TabControl>
         <TabControl Grid.Column="1">
+            <TabItem Header="Просмотр">
+                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}"/>
+                <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
+                    
+                </Canvas>-->
+            </TabItem>
             <TabItem Header="GCode">
                 <ListView ItemsSource="{Binding GCode}">
                     <ListView.ItemTemplate>
@@ -88,12 +94,6 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            </TabItem>
-            <TabItem Header="Просмотр">
-                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}"/>
-                <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
-                    
-                </Canvas>-->
             </TabItem>
         </TabControl>
     </Grid>
