@@ -15,6 +15,9 @@ namespace ImageToGCode
     class MainViewModel : INotifyPropertyChanged
     {
         #region Fields
+        private double _Magnification = 1.0;
+        private int _MinPower = 15;
+        private int _MaxPower = 80;
         private Engine.Interpolators.IInterpolator _SelectedInterpolator;
         private Engine.Visualisers.LinesVisualiser _Visualiser;
         private Engine.GCodeGeneration.StrokesFromImageLinesGenerator _StrokeGenerator;
@@ -22,12 +25,13 @@ namespace ImageToGCode
         private Engine.ImageByLinesPresenter _Presenter;
         private List<Engine.Interpolators.IInterpolator> _InterpolatorsSource;
         private double _Angle = 45;
-        private double _Feed = 400;
+        private double _MinFeed = 4000;
+        private double _Feed = 10000;
         private bool _EngraveBothDirection = true;
         private bool _UseFreeZone = true;
         private double _FreeZone = 10;
-        private double _LineResolution = 2;
-        private double _PointResolution = 2;
+        private double _LineResolution = 0.2;
+        private double _PointResolution = 0.5;
         private double _AspectRate = 2;
         private bool _KeepAspectRatio = true;
         private ObservableCollection<string> _GCode;
@@ -160,7 +164,20 @@ namespace ImageToGCode
                 CountEstimatedTime();
             }
         }
-
+        public double MinFeed
+        {
+            get
+            {
+                return _MinFeed;
+            }
+            set
+            {
+                if (_MinFeed == value)
+                    return;
+                _MinFeed = value;
+                OnPropertyChanged("MinFeed");
+            }
+        }
         public bool EngraveBothDirection
         {
             get { return _EngraveBothDirection; }
@@ -232,6 +249,54 @@ namespace ImageToGCode
                 RaisePropertyChanged("EstimatedTime");
             }
         }
+        public int MaxPower
+        {
+            get
+            {
+                return _MaxPower;
+            }
+            set
+            {
+                if (_MaxPower == value)
+                    return;
+                if (value <= _MinPower)
+                    throw new Exception("Max power can't be more then min power");
+                _MaxPower = value;
+                RaisePropertyChanged("MaxPower");
+            }
+        }
+        public int MinPower
+        {
+            get
+            {
+                return _MinPower;
+            }
+            set
+            {
+                if (_MinPower == value)
+                    return;
+                if (value >= _MaxPower)
+                    throw new Exception("Max power can't be more then min power");
+
+                _MinPower = value;
+                RaisePropertyChanged("MinPower");
+            }
+        }
+        public double Magnification
+        {
+            get
+            {
+                return _Magnification;
+            }
+            set
+            {
+                if (_Magnification == value)
+                    return;
+                _Magnification = value;
+                RaisePropertyChanged("Magnification");
+            }
+        }
+        public List<double> MagnificationSource { get; private set; }
         #endregion
 
         public Engine.ImageByLinesPresenter Presenter
@@ -287,10 +352,19 @@ namespace ImageToGCode
             Generate = new Command((x) => GenerateAction(), (x) => _Bitmap != null);
             OpenImage = new Command((x) => OpenImageAction(), (x) => true);
             Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
+
             _InterpolatorsSource = new List<Engine.Interpolators.IInterpolator>();
             InterpolatorsSource.Add(new Engine.Interpolators.StepInterpolator());
             InterpolatorsSource.Add(new Engine.Interpolators.BilinearInterpolator());
             SelectedInterpolator = InterpolatorsSource[0];
+
+            MagnificationSource = new List<double>();
+            MagnificationSource.Add(0.5);
+            MagnificationSource.Add(1);
+            MagnificationSource.Add(2);
+            MagnificationSource.Add(4);
+            MagnificationSource.Add(10);
+            MagnificationSource.Add(20);
         }
         #region Command implements
         private void OpenImageAction()
@@ -321,11 +395,21 @@ namespace ImageToGCode
             _StrokeGenerator = new Engine.GCodeGeneration.StrokesFromImageLinesGenerator(Presenter.Lines, UseFreeZone, FreeZone, EngraveBothDirection);
             StrokeGenerator.GenerateStrokes();
 
-            var gcGen = new Engine.GCodeGeneration.GCodeGenerator(StrokeGenerator.Strokes, (int)Feed, 80);
+            var gcGen = new Engine.GCodeGeneration.GCodeGenerator(StrokeGenerator.Strokes, (int)MinFeed, (int)Feed, MaxPower, MinPower);
             var gcode = gcGen.GenerateCode();
             _GCode.Clear();
             foreach (var str in gcode)
                 _GCode.Add(str);
+
+            _GCode.Add(string.Format("(FileName: {0})", _PathToFile));
+            _GCode.Add(string.Format("(Width: {0} mm, Height: {1} mm)", Width, Height));
+            _GCode.Add(string.Format("(Resolution line: {0} mm, point: {1} mm)", LineResolution, PointResolution));
+            _GCode.Add(string.Format("(Feed max: {0} mm/min, min: {1} mm/min)", Feed, MinFeed));
+            _GCode.Add(string.Format("(Power max: {0}, min: {1})", MaxPower, MinPower));
+            _GCode.Add(string.Format("(Angle: {0})", Angle));
+            _GCode.Add(string.Format("(Idle zones: {0})", UseFreeZone?FreeZone:0.0));
+            _GCode.Add(string.Format("(Engrave both directions: {0})", EngraveBothDirection));
+
         }
         private void SaveGCodeAction()
         {

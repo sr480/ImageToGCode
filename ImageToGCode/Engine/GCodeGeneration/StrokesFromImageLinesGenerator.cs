@@ -71,10 +71,13 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 if(startPixel != null)
                 {
                     var lastPixel = pixels[pixels.Count - 1];
+                    if (startPixel.Intensity == 1)
+                        lastPixel = startPixel;
+
                     if (startPixel != lastPixel)
                         Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
                     
-                    AddLineEndAndDeacceleration(lastPixel, lastPixel - pixels[pixels.Count - 2]);
+                    AddLineEndAndDeacceleration(lastPixel, pixels[pixels.Count - 1] - pixels[pixels.Count - 2]);
                 }
 
                 if (strokesCount != Strokes.Count)
@@ -106,6 +109,6 @@ namespace ImageToGCode.Engine.GCodeGeneration
             if (_UseIdleZones) Strokes.Add(new IdleStroke(lastPixel + direction.Normalize() * IdleDistance));
         }
 
-        private const double SAME_INTENSITY = 0.02;
+        private const double SAME_INTENSITY = 0.1;
     }
 }

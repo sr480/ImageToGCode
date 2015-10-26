@@ -38,6 +38,15 @@
                         <HeaderedContentControl Header="Подача (мм/мин):">
                             <TextBox Text="{Binding Feed, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
                         </HeaderedContentControl>
+                        <HeaderedContentControl Header="Минимальная подача (мм/мин):">
+                            <TextBox Text="{Binding MinFeed, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Header="Максимальная мощность:">
+                            <TextBox Text="{Binding MaxPower, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Header="Минимальная мощность:">
+                            <TextBox Text="{Binding MinPower, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
+                        </HeaderedContentControl>
                         <HeaderedContentControl Header="Метод интерполяции:">
                             <ComboBox ItemsSource="{Binding InterpolatorsSource}" SelectedValue="{Binding SelectedInterpolator}">
                                 <ComboBox.ItemTemplate>
@@ -56,6 +65,16 @@
                         <Button Command="{Binding Generate}">Генерировать</Button>
                         <Button Command="{Binding Save}">Сохранить</Button>
                         <Button Click="Button_Click" >Просмотр</Button>
+
+                        <HeaderedContentControl Header="Увеличение:">
+                            <ComboBox ItemsSource="{Binding MagnificationSource}" SelectedValue="{Binding Magnification}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding StringFormat='X:0.##'}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </HeaderedContentControl>
                     </StackPanel>
                 </DockPanel>
             </TabItem>
@@ -71,7 +90,7 @@
                 </ListView>
             </TabItem>
             <TabItem Header="Просмотр">
-                <vis:Visualiser x:Name="visual"/>
+                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}"/>
                 <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
                     
                 </Canvas>-->
