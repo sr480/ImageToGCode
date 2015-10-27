@@ -3,14 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace ImageToGCode.Engine.GCodeGeneration
 {
     class CoordinatMotion : RapidMotion
     {
-        private const string GCODE_FORMAT = "G1 X{0} Y{1} F{2} S{3}";
-        private const string GCODE_FORMAT_COMMENT = "G1 X{0} Y{1} F{2} S{3}; {4}";
+        private const string GCODE_FORMAT = "G1X{0}Y{1}F{2}S{3}";
+        private const string GCODE_FORMAT_COMMENT = "G1X{0}Y{1}F{2}S{3};{4}";
         public int Intensity { get; private set; }
         public int Feed { get; private set; }
 
