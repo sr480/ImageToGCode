@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace ImageToGCode.Engine.GCodeGeneration
 {
@@ -55,8 +55,6 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
                 foreach (var curPixel in line.Pixels)
                 {
-                    strokeIntensities.Add(curPixel.Intensity);
-
                     if (strokeBegining == null)
                     {
                         if (curPixel.Intensity != 1)
@@ -64,8 +62,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
                             strokeBegining = curPixel;
                             if (firstDarkPixel == null)
                                 firstDarkPixel = strokeBegining;
-
-                            strokeIntensities.Add(curPixel.Intensity);
+                            strokeIntensities.Clear();
                         }
                     }
                     else if (Math.Abs(strokeBegining.Intensity - curPixel.Intensity) > SAME_INTENSITY)
@@ -75,7 +72,8 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
                         strokeIntensities.Clear();
                     }
-                    else strokeIntensities.Add(curPixel.Intensity);
+                    
+                    strokeIntensities.Add(curPixel.Intensity);
                 }
 
 
