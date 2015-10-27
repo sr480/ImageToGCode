@@ -9,6 +9,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
 {
     class StrokesFromImageLinesGenerator
     {
+        private const double SAME_INTENSITY = 0.1;
         private List<ImageLine> _Lines;
 
         public List<FreeMotionStroke> Strokes { get; private set; }
@@ -29,13 +30,8 @@ namespace ImageToGCode.Engine.GCodeGeneration
         {
             _Lines = lines;
             Strokes = new List<FreeMotionStroke>();
-
             
-
-            if (!useIdleZones)
-                _IdleDistance = 0.0;
-            else
-                _IdleDistance = idleDistance;
+            _IdleDistance = idleDistance;
 
             _DoubleDirections = doubleDirections;
             _UseIdleZones = useIdleZones;
@@ -50,173 +46,90 @@ namespace ImageToGCode.Engine.GCodeGeneration
                 if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
                     continue;//throw new Exception("Пока не придумал что с этим делать");
 
-                LinkedList<FreeMotionStroke> LineStrokes = new LinkedList<FreeMotionStroke>();
+                LinkedList<FreeMotionStroke> lineStrokes = new LinkedList<FreeMotionStroke>();
 
+                Pixel firstDarkPixel = null;
+                Pixel strokeBegining = null;
 
-                Pixel startPrintingPixel = null;
-                Pixel startPixel = null;
-                foreach (var pixel in line.Pixels)//цвет штриха всегда вычисляем в прямом порядке
+                List<double> strokeIntensities = new List<double>();
+
+                foreach (var curPixel in line.Pixels)
                 {
-                    if (startPixel == null)
+                    strokeIntensities.Add(curPixel.Intensity);
+
+                    if (strokeBegining == null)
                     {
-                        if (pixel.Intensity != 1)
+                        if (curPixel.Intensity != 1)
                         {
-                            startPixel = pixel;
-                            if (startPrintingPixel == null)
-                                startPrintingPixel = startPixel;
+                            strokeBegining = curPixel;
+                            if (firstDarkPixel == null)
+                                firstDarkPixel = strokeBegining;
+
+                            strokeIntensities.Add(curPixel.Intensity);
                         }
                     }
-                    else if (Math.Abs(pixel.Intensity - startPixel.Intensity) > SAME_INTENSITY)
+                    else if (Math.Abs(strokeBegining.Intensity - curPixel.Intensity) > SAME_INTENSITY)
                     {
-                        if (_DoubleDirections && isReversed)
-                            LineStrokes.AddLast(new Stroke(startPixel, 1 - startPixel.Intensity));
-                        else
-                            LineStrokes.AddLast(new Stroke(pixel, 1 - startPixel.Intensity));
+                        AddStroke(lineStrokes, isReversed, strokeBegining, curPixel, 1 - strokeIntensities.Average());
+                        strokeBegining = curPixel;
 
-                        startPixel = pixel;
+                        strokeIntensities.Clear();
                     }
+                    else strokeIntensities.Add(curPixel.Intensity);
                 }
 
 
+                if (strokeBegining == null) //Выходим, так как строка вся белая
+                    continue;
 
-                Pixel lastPixel = null;
-                if (startPixel != null)
-                {
-                    lastPixel = line.Pixels[line.Pixels.Count - 1];
-                    if (startPixel.Intensity == 1)
-                        lastPixel = startPixel;
-                    
-                    if (startPixel != lastPixel)
-                    {
-                        if (_DoubleDirections && isReversed)
-                            LineStrokes.AddLast(new Stroke(startPixel, 1 - startPixel.Intensity));
-                        else
-                            LineStrokes.AddLast(new Stroke(lastPixel, 1 - startPixel.Intensity));
-                    }
-                }
+                Pixel lastPixel = line.Pixels[line.Pixels.Count - 1];
 
+                if (strokeBegining.Intensity == 1)
+                    lastPixel = strokeBegining;
+                else if(lastPixel != strokeBegining)
+                    AddStroke(lineStrokes, isReversed, strokeBegining, lastPixel, 1 - strokeIntensities.Average());
+                
 
-                if (LineStrokes.Count != 0)
+                if (isReversed)
                 {
                     if (_UseIdleZones)
                     {
-                        if (_DoubleDirections && isReversed)
-                        {
-                            LineStrokes.AddFirst(new IdleStroke(LineStrokes.First.Value.DestinationPoint + (line.Pixels[0] - line.Pixels[1]).Normalize() * _IdleDistance));
-
-                            int lastIndex = line.Pixels.Count;
-                            LineStrokes.AddLast(new IdleStroke(lastPixel));
-                        }
-                        else
-                        {
-                            LineStrokes.AddFirst(new IdleStroke(startPrintingPixel));
-
-                            int lastIndex = line.Pixels.Count;
-                            LineStrokes.AddLast(new IdleStroke(LineStrokes.Last.Value.DestinationPoint + (line.Pixels[lastIndex - 1] - line.Pixels[lastIndex - 2]).Normalize() * _IdleDistance));
-                        }
-                        
-                        
-                    }
-
-                    IEnumerable<FreeMotionStroke> itemsToAdd;
-                    if (_DoubleDirections && isReversed)
-                    {
-                        int lastIndex = line.Pixels.Count;
-                        LineStrokes.AddLast(new FreeMotionStroke(lastPixel + (line.Pixels[lastIndex - 1] - line.Pixels[lastIndex - 2]).Normalize() * _IdleDistance));
-                        itemsToAdd = LineStrokes.Reverse();
+                        lineStrokes.AddFirst(new IdleStroke(lastPixel));
+                        lineStrokes.AddLast(new IdleStroke(firstDarkPixel + (firstDarkPixel - lastPixel).Normalize() * _IdleDistance));
+                        lineStrokes.AddFirst(new FreeMotionStroke(lastPixel + (lastPixel - firstDarkPixel).Normalize() * _IdleDistance));
                     }
                     else
-                    {
-                        LineStrokes.AddFirst(new FreeMotionStroke(LineStrokes.First.Value.DestinationPoint + (line.Pixels[0] - line.Pixels[1]).Normalize() * _IdleDistance));
-                        itemsToAdd = LineStrokes;
-                    }
-
-                    Strokes.AddRange(itemsToAdd);
-   
-                    isReversed = !isReversed;
+                        lineStrokes.AddFirst(new FreeMotionStroke(lastPixel));
                 }
-            }
-        }
-        
-        
-        
-        
-        
-        
-        /*public void GenerateStrokes()
-        {
-            bool isReversed = false;
-
-            foreach (var line in _Lines)
-            {
-                
-                if (line.Pixels.Count == 1 || line.Pixels.Count == 0)
-                    continue;//throw new Exception("Пока не придумал что с этим делать");
-
-                int strokesCount = Strokes.Count;
-
-                List<Pixel> pixels = GetPixels(line.Pixels, isReversed);
-
-
-                Pixel startPixel = null;
-                foreach (var pixel in pixels)
+                else
                 {
-                    if (startPixel == null)
+                    if (_UseIdleZones)
                     {
-                        if (pixel.Intensity != 1)
-                        {
-                            startPixel = pixel;
-                            AddLineStarAndAcceleration(startPixel, pixels[0] - pixels[1]);
-                        }
+                        lineStrokes.AddFirst(new IdleStroke(firstDarkPixel));
+                        lineStrokes.AddLast(new IdleStroke(lastPixel + (lastPixel - firstDarkPixel).Normalize() * _IdleDistance));
+                        lineStrokes.AddFirst(new FreeMotionStroke(firstDarkPixel + (firstDarkPixel - lastPixel).Normalize() * _IdleDistance));
                     }
-                    else if(Math.Abs(pixel.Intensity - startPixel.Intensity) > SAME_INTENSITY)
-                    {
-                        Strokes.Add(new Stroke(pixel, 1 - startPixel.Intensity));
-                        startPixel = pixel;
-                    }
+                    else
+                        lineStrokes.AddFirst(new FreeMotionStroke(firstDarkPixel));
                 }
 
-                if(startPixel != null)
-                {
-                    var lastPixel = pixels[pixels.Count - 1];
-                    if (startPixel.Intensity == 1)
-                        lastPixel = startPixel;
+                Strokes.AddRange(lineStrokes);
 
-                    if (startPixel != lastPixel)
-                        Strokes.Add(new Stroke(lastPixel, 1 - startPixel.Intensity));
-                    
-                    AddLineEndAndDeacceleration(lastPixel, pixels[pixels.Count - 1] - pixels[pixels.Count - 2]);
-                }
 
-                if (strokesCount != Strokes.Count)
+                if (_DoubleDirections)
                     isReversed = !isReversed;
+
             }
         }
 
-        private List<Pixel> GetPixels(List<Pixel> pixels, bool isReverse)
+        private void AddStroke(LinkedList<FreeMotionStroke> line, bool isReversed, Pixel strokeBegining, Pixel strokeEnd, double intensity)
         {
-            if (_DoubleDirections && isReverse)
-                return ((IEnumerable<Pixel>)pixels).Reverse().ToList(); //пока так..потом подумать
-            return pixels;
-        }
-
-        private void AddLineStarAndAcceleration(Pixel firstPixel, Vector direction)
-        {
-            if (_UseIdleZones)
-            {
-                Vector startPoint = firstPixel + direction.Normalize() * IdleDistance;
-
-                Strokes.Add(new FreeMotionStroke(startPoint));
-                Strokes.Add(new IdleStroke(firstPixel));
-            }
+            if (isReversed)
+                line.AddFirst(new Stroke(strokeBegining, intensity));
             else
-                Strokes.Add(new FreeMotionStroke(firstPixel));
+                line.AddLast(new Stroke(strokeEnd, intensity));
         }
-        private void AddLineEndAndDeacceleration(Vector lastPixel, Vector direction)
-        {
-            if (_UseIdleZones) Strokes.Add(new IdleStroke(lastPixel + direction.Normalize() * IdleDistance));
-        }*/
 
-        private const double SAME_INTENSITY = 0.1;
+
     }
 }
