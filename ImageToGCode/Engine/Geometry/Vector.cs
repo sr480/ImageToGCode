@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace ImageToGCode.Engine.Geometry 
+
+namespace ImageToGCode.Engine.Geometry
 {
     class Vector
     {
@@ -12,7 +12,7 @@ namespace ImageToGCode.Engine.Geometry
         private readonly double _X;
         public double X { get { return _X; } }
         public double Y { get { return _Y; } }
-        
+
         public static Vector operator -(Vector a, Vector b)
         {
             return new Vector(a.X - b.X, a.Y - b.Y);
@@ -31,17 +31,23 @@ namespace ImageToGCode.Engine.Geometry
             return new Vector(a.X * d, a.Y * d);
         }
 
-        
-        private readonly Lazy<double> _Length;
-        
-        public double Length { get { return _Length.Value; } }
+
+        private double? _Length;
+
+        public double Length
+        {
+            get
+            {
+                if (!_Length.HasValue)
+                    _Length = Math.Sqrt(X * X + Y * Y);
+                return _Length.Value;
+            }
+        }
 
         public Vector(double x, double y)
         {
             _X = x;
             _Y = y;
-            
-            _Length = new Lazy<double>(() => Math.Sqrt(X*X + Y*Y), false); //нужна ли потокобезопасность для этого свойства?
         }
 
         public Vector Normalize()
@@ -63,7 +69,7 @@ namespace ImageToGCode.Engine.Geometry
         }
         public double GetAngle()
         {
-            return Math.Atan(Y/X);
+            return Math.Atan(Y / X);
         }
     }
 }

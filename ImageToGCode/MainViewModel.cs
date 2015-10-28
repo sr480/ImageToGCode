@@ -8,7 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace ImageToGCode
 {
@@ -17,27 +17,27 @@ namespace ImageToGCode
         #region Fields
         private double _Magnification = 1.0;
         private int _MinPower = 15;
-        private int _MaxPower = 80;
+        private int _MaxPower = 40;
         private Engine.Interpolators.IInterpolator _SelectedInterpolator;
         private Engine.Visualisers.LinesVisualiser _Visualiser;
         private Engine.GCodeGeneration.StrokesFromImageLinesGenerator _StrokeGenerator;
 
         private Engine.ImageByLinesPresenter _Presenter;
         private List<Engine.Interpolators.IInterpolator> _InterpolatorsSource;
-        private double _Angle = 45;
+        private double _Angle = 90;
         private double _MinFeed = 4000;
         private double _Feed = 10000;
         private bool _EngraveBothDirection = true;
         private bool _UseFreeZone = true;
         private double _FreeZone = 10;
         private double _LineResolution = 0.2;
-        private double _PointResolution = 0.5;
+        private double _PointResolution = 0.2;
         private double _AspectRate = 2;
         private bool _KeepAspectRatio = true;
         private ObservableCollection<string> _GCode;
         private string _PathToFile;
-        private double _Height = 5;
-        private double _Width = 4;
+        private double _Height = 100;
+        private double _Width = 100;
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
         private Bitmap _Bitmap;
         private TimeSpan _EstimatedTime;
@@ -260,7 +260,7 @@ namespace ImageToGCode
                 if (_MaxPower == value)
                     return;
                 if (value <= _MinPower)
-                    throw new Exception("Max power can't be more then min power");
+                    _MinPower = value;//throw new Exception("Max power can't be more then min power");
                 _MaxPower = value;
                 RaisePropertyChanged("MaxPower");
             }
@@ -276,7 +276,7 @@ namespace ImageToGCode
                 if (_MinPower == value)
                     return;
                 if (value >= _MaxPower)
-                    throw new Exception("Max power can't be more then min power");
+                    _MaxPower = value;
 
                 _MinPower = value;
                 RaisePropertyChanged("MinPower");
