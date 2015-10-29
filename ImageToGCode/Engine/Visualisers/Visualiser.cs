@@ -47,6 +47,27 @@ namespace ImageToGCode.Engine.Visualisers
     /// </summary>
     class Visualiser : Canvas
     {
+        public int MinIntensity
+        {
+            get { return (int)GetValue(MinIntensityProperty); }
+            set { SetValue(MinIntensityProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MinIntensity.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MinIntensityProperty =
+            DependencyProperty.Register("MinIntensity", typeof(int), typeof(Visualiser), new UIPropertyMetadata(0));
+        public int MaxIntensity
+        {
+            get { return (int)GetValue(MaxIntensityProperty); }
+            set { SetValue(MaxIntensityProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MaxIntensity.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MaxIntensityProperty =
+            DependencyProperty.Register("MaxIntensity", typeof(int), typeof(Visualiser), new UIPropertyMetadata(0));
+
+
+
         public object Data
         {
             get { return GetValue(DataProperty); }
@@ -74,7 +95,7 @@ namespace ImageToGCode.Engine.Visualisers
 
         static Visualiser()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(Visualiser), new FrameworkPropertyMetadata(typeof(Visualiser)));            
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(Visualiser), new FrameworkPropertyMetadata(typeof(Visualiser)));
         }
         public Visualiser()
         {
@@ -90,7 +111,8 @@ namespace ImageToGCode.Engine.Visualisers
                 VisualiseLines(dc);
             if (Data is StrokesFromImageLinesGenerator)
                 VisualiseStrokes(dc);
-
+            if (Data is IEnumerable<BaseGCode>)
+                VisualiseGCode(dc);
         }
 
         private void VisualiseLines(DrawingContext dc)
@@ -106,7 +128,7 @@ namespace ImageToGCode.Engine.Visualisers
                 byte gcIntence = (byte)(255 - 255 * vline.Intensity);
 
                 dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);
-            }            
+            }
         }
         private void VisualiseStrokes(DrawingContext dc)
         {
@@ -131,6 +153,51 @@ namespace ImageToGCode.Engine.Visualisers
                 firstStroke = curStroke;
             }
         }
+        private void VisualiseGCode(DrawingContext dc)
+        {
+            if (Data == null || !(Data is IEnumerable<BaseGCode>) || ((IEnumerable<BaseGCode>)Data).Count() == 0)
+                return;
+
+            var data = (IList<BaseGCode>)Data;
+
+            BaseMotion firstMotion = null;
+            foreach (BaseGCode item in data)
+            {
+                if (!(item is BaseMotion))
+                    continue;
+
+                var curMotion = (BaseMotion)item;
+
+                if (firstMotion != null)
+                {
+                    Point start = new Point((firstMotion.Position.X + 15.0) * Magnification,
+                        this.ActualHeight - (firstMotion.Position.Y + 15.0) * Magnification);
+                    Point end = new Point((curMotion.Position.X + 15.0) * Magnification,
+                        this.ActualHeight - (curMotion.Position.Y + 15.0) * Magnification);
+
+                    dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
+                }
+
+                firstMotion = curMotion;
+            }
+        }
+
+        private Color GCodeToColor(BaseMotion motion)
+        {
+            if (motion is CoordinatMotion)
+            {
+                if (((CoordinatMotion)motion).Intensity == 0.0)
+                    return Colors.PaleGreen;
+
+                byte gcIntence = (byte)(255 - 255 * (((CoordinatMotion)motion).Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
+            }
+
+            if (motion is RapidMotion)
+                return Colors.HotPink;
+
+            return Colors.HotPink;
+        }
 
         private Color StrokeToColor(FreeMotionStroke stroke)
         {
@@ -138,13 +205,13 @@ namespace ImageToGCode.Engine.Visualisers
                 return Colors.BlueViolet;
             if (stroke is Stroke)
             {
-                if(((Stroke)stroke).Intensity == 0.0)
+                if (((Stroke)stroke).Intensity == 0.0)
                     return Colors.PaleGreen;
 
                 byte gcIntence = (byte)(255 - 255 * ((Stroke)stroke).Intensity);
                 return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
             }
-            
+
             return Colors.HotPink;
         }
     }

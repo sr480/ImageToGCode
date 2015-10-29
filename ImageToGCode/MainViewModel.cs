@@ -1,4 +1,5 @@
-﻿using ImageToGCode.Tools;
+﻿using ImageToGCode.Engine.GCodeGeneration;
+using ImageToGCode.Tools;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ namespace ImageToGCode
         private double _PointResolution = 0.2;
         private double _AspectRate = 2;
         private bool _KeepAspectRatio = true;
-        private ObservableCollection<string> _GCode;
+        private ObservableCollection<Engine.GCodeGeneration.BaseGCode> _GCode;
         private string _PathToFile;
         private double _Height = 100;
         private double _Width = 100;
@@ -336,21 +337,23 @@ namespace ImageToGCode
         }
         #region Commands
         public Command OpenImage { get; private set; }
+        public Command OpenSvg { get; private set; }
         public Command Generate { get; private set; }
         public Command Save { get; private set; }
         #endregion
 
-        public ObservableCollection<string> GCode
+        public ObservableCollection<Engine.GCodeGeneration.BaseGCode> GCode
         {
             get { return _GCode; }
         }
 
         public MainViewModel()
         {
-            _GCode = new ObservableCollection<string>();
+            _GCode = new ObservableCollection<Engine.GCodeGeneration.BaseGCode>();
             _GCode.CollectionChanged += GCode_CollectionChanged;
             Generate = new Command((x) => GenerateAction(), (x) => _Bitmap != null);
             OpenImage = new Command((x) => OpenImageAction(), (x) => true);
+            OpenSvg = new Command((x) => OpenSvgAction(), (x) => true);
             Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
 
             _InterpolatorsSource = new List<Engine.Interpolators.IInterpolator>();
@@ -384,6 +387,27 @@ namespace ImageToGCode
                 }
             }
         }
+        private void OpenSvgAction()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var doc = Svg.SvgDocument.Open(openFileDialog.FileName);
+
+                    var gcg = new GCodeFromSVGGenerator(doc, (int)_MinFeed, (int)_Feed, (int)_MaxPower, (int)_MinPower);
+                    foreach (var gc in gcg.GenerateCode())
+                    {
+                        _GCode.Add(gc);
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show("Ошибка открытия файла", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+            }
+        }
         private void GenerateAction()
         {
             var processor = new Engine.ImageProcessor(_Bitmap, Width, Height, LineResolution, PointResolution, Angle, SelectedInterpolator);
@@ -402,14 +426,14 @@ namespace ImageToGCode
             foreach (var str in gcode)
                 _GCode.Add(str);
 
-            _GCode.Add(string.Format("(FileName: {0})", _PathToFile));
-            _GCode.Add(string.Format("(Width: {0} mm, Height: {1} mm)", Width, Height));
-            _GCode.Add(string.Format("(Resolution line: {0} mm, point: {1} mm)", LineResolution, PointResolution));
-            _GCode.Add(string.Format("(Feed max: {0} mm/min, min: {1} mm/min)", Feed, MinFeed));
-            _GCode.Add(string.Format("(Power max: {0}, min: {1})", MaxPower, MinPower));
-            _GCode.Add(string.Format("(Angle: {0})", Angle));
-            _GCode.Add(string.Format("(Idle zones: {0})", UseFreeZone?FreeZone:0.0));
-            _GCode.Add(string.Format("(Engrave both directions: {0})", EngraveBothDirection));
+            _GCode.Add(new BaseGCode(string.Format("(FileName: {0})", _PathToFile)));
+            _GCode.Add(new BaseGCode(string.Format("(Width: {0} mm, Height: {1} mm)", Width, Height)));
+            _GCode.Add(new BaseGCode(string.Format("(Resolution line: {0} mm, point: {1} mm)", LineResolution, PointResolution)));
+            _GCode.Add(new BaseGCode(string.Format("(Feed max: {0} mm/min, min: {1} mm/min)", Feed, MinFeed)));
+            _GCode.Add(new BaseGCode(string.Format("(Power max: {0}, min: {1})", MaxPower, MinPower)));
+            _GCode.Add(new BaseGCode(string.Format("(Angle: {0})", Angle)));
+            _GCode.Add(new BaseGCode(string.Format("(Idle zones: {0})", UseFreeZone?FreeZone:0.0)));
+            _GCode.Add(new BaseGCode(string.Format("(Engrave both directions: {0})", EngraveBothDirection)));
 
         }
         private void SaveGCodeAction()

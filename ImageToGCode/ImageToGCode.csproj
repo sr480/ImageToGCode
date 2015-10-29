@@ -35,17 +35,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Svg">
+      <HintPath>..\packages\Svg.2.1.0\lib\Svg.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -55,8 +55,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Engine\GCodeGeneration\BaseGCode.cs" />
     <Compile Include="Engine\GCodeGeneration\BaseMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
+    <Compile Include="Engine\GCodeGeneration\GCodeFromSVGGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\GCodeGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\IdleStroke.cs" />
     <Compile Include="Engine\GCodeGeneration\MotionFactory.cs" />
@@ -119,6 +121,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

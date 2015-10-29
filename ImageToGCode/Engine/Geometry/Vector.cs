@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -43,6 +44,8 @@ namespace ImageToGCode.Engine.Geometry
                 return _Length.Value;
             }
         }
+
+        public Vector(PointF point) : this(point.X, point.Y) { }
 
         public Vector(double x, double y)
         {

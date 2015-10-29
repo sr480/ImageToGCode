@@ -9,7 +9,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
     class GCodeGenerator
     {
         private readonly int _MaxPower;
-        private readonly int _Feed;
+        private readonly int _MaxFeed;
         private readonly IEnumerable<FreeMotionStroke> _Strokes;
         private readonly int _MinPower;
         private readonly int _MinFeed;
@@ -18,31 +18,28 @@ namespace ImageToGCode.Engine.GCodeGeneration
             _MinFeed = minFeed;
             _MinPower = minPower;
             _Strokes = strokes;
-            _Feed = feed;
+            _MaxFeed = feed;
             _MaxPower = maxPower;
         }
 
         
-        public List<string> GenerateCode()
+        public List<BaseGCode> GenerateCode()
         {
-            var result = new List<string>();
-            MotionFactory mf = new MotionFactory();
-
-            result.Add(string.Format("(MinFeed: {0}, MaxFeed: {1})", _MinFeed, _Feed));
-            result.Add(string.Format("(MinPower: {0}, MaxPower: {1})", _MinPower, _MaxPower));
-
-            result.Add("G21");
-            result.Add("G90");
-            result.Add("M3 S0");
-            result.Add(string.Format("F{0}", _Feed));
+            var result = new List<BaseGCode>();
+            MotionFactory mf = new MotionFactory(_MinFeed, _MaxFeed, _MaxPower, _MinPower);
+                        
+            result.Add(new BaseGCode("G21"));
+            result.Add(new BaseGCode("G90"));
+            result.Add(new BaseGCode("M3 S0"));
+            result.Add(new BaseGCode(string.Format("F{0}", _MaxFeed)));
 
             foreach(var stroke in _Strokes)
             {
-                result.Add(mf.CreateMotion(stroke, _MinFeed, _Feed, _MaxPower, _MinPower).ToString());
+                result.Add(mf.CreateMotion(stroke));
             }
 
-            result.Add("M5");
-            result.Add("%");
+            result.Add(new BaseGCode("M5"));
+            result.Add(new BaseGCode("%"));
             return result;
         }
     }
