@@ -11,8 +11,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
     {
         private const string GCODE_FORMAT = "G0 X{0} Y{1} S0";
         private const string GCODE_FORMAT_COMMENT = "G0 X{0} Y{1} S0; {2}";
-        public string Comment { get; set; }
-        
+                
         public RapidMotion(Vector position) : base(position)
         { }
         public RapidMotion(Vector position, string comment) : this(position)
