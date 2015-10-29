@@ -54,14 +54,45 @@ namespace ImageToGCode.Engine
                 currentVector += directionVector;
                 temp = _Image.GetPixel(currentVector.X, currentVector.Y);//inter.GetPixel(_Image, currentVector);
             }
+
+            var lastAddedVector = currentVector - directionVector;
+            var lastVector = GetLastVector();
+            if (lastAddedVector.X != lastVector.X && lastAddedVector.Y != lastVector.Y)
+            {
+                _Pixels.Add(_Image.GetPixel(lastVector.X, lastVector.Y));
+
+            }
+            
+
+        }
+
+        private Vector GetLastVector()
+        {
+            if (B == 0)
+                return new Vector(-C / B, _Image.Height);
+
+            double x = _Image.Width;
+            double y = GetY(x);
+
+
+            if (y > _Image.Height)
+            {
+                y = _Image.Height;
+                x = GetX(y);
+            }
+            else if (y < 0)
+            {
+                y = 0;
+                x = GetX(y);
+            }
+
+            return new Vector(x, y);
         }
 
         private Vector GetFirstVector() // можно потом переделать...
         {
             if(B == 0)
-            {
                 return new Vector(-C / A, 0);
-            }
             
             double x = 0.0;
             double y = GetY(x);
