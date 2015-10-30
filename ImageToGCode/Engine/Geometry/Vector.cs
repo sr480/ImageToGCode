@@ -9,6 +9,11 @@ namespace ImageToGCode.Engine.Geometry
 {
     class Vector
     {
+        public static double GetLength(Vector a, Vector b)
+        {
+            return Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+        }
+
         private readonly double _Y;
         private readonly double _X;
         public double X { get { return _X; } }
@@ -44,8 +49,7 @@ namespace ImageToGCode.Engine.Geometry
                 return _Length.Value;
             }
         }
-
-        public Vector(PointF point) : this(point.X, point.Y) { }
+        public Vector(PointF p) : this(p.X, p.Y) { }
 
         public Vector(double x, double y)
         {

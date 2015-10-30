@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Engine\GCodeGeneration\ArcMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\BaseGCode.cs" />
     <Compile Include="Engine\GCodeGeneration\BaseMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
@@ -66,6 +67,8 @@
     <Compile Include="Engine\GCodeGeneration\RapidMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\Stroke.cs" />
     <Compile Include="Engine\GCodeGeneration\StrokesFromImageLinesGenerator.cs" />
+    <Compile Include="Engine\Geometry\Bezier.cs" />
+    <Compile Include="Engine\Geometry\FactorVectorFactory.cs" />
     <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />
     <Compile Include="Engine\AngleToVector.cs" />
     <Compile Include="Engine\Geometry\Line.cs" />

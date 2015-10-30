@@ -390,8 +390,10 @@ namespace ImageToGCode
         private void OpenSvgAction()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "SVG file (*.svg)|*.svg";
             if (openFileDialog.ShowDialog() == true)
             {
+                _GCode.Clear();
                 try
                 {
                     var doc = Svg.SvgDocument.Open(openFileDialog.FileName);
