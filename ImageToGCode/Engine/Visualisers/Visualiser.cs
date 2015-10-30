@@ -175,11 +175,12 @@ namespace ImageToGCode.Engine.Visualisers
                     Point end = new Point((curMotion.Position.X + 15.0) * Magnification,
                         this.ActualHeight - (curMotion.Position.Y + 15.0) * Magnification);
 
-                    dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
+                    dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);                    
                 }
 
                 firstMotion = curMotion;
             }
+            
         }
 
         private Color GCodeToColor(BaseMotion motion)

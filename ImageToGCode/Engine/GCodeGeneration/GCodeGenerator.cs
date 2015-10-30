@@ -35,7 +35,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
             foreach(var stroke in _Strokes)
             {
-                result.Add(mf.CreateMotion(stroke));
+                result.AddRange(mf.CreateMotion(stroke));
             }
 
             result.Add(new BaseGCode("M5"));

@@ -12,12 +12,15 @@ namespace ImageToGCode.Engine.GCodeGeneration
         private readonly int _MinPower;
         private readonly int _MinFeed;
         private readonly Svg.SvgDocument _Svg;
-
+        private double _factorX;
+        private double _factorY;
         MotionFactory _motionFactory;
 
         public GCodeFromSVGGenerator(Svg.SvgDocument svg, int minFeed, int feed, int maxPower, int minPower)
         {
             _Svg = svg;
+            _factorX = _Svg.Width.Value / (_Svg.ViewBox.Width - _Svg.ViewBox.MinX);
+            _factorY = _Svg.Height.Value / (_Svg.ViewBox.Height - _Svg.ViewBox.MinY);
             _MinFeed = minFeed;
             _MinPower = minPower;
             _MaxFeed = feed;
@@ -43,27 +46,14 @@ namespace ImageToGCode.Engine.GCodeGeneration
             return result;
         }
 
-        private IEnumerable<BaseGCode> GetElements (object element)
-        {
-            if (element is Svg.SvgPath)
-                return GetElements((Svg.SvgPath)element);
-
-            return GetElements((Svg.SvgElement)element);
-        }
-
         private IEnumerable<BaseGCode> GetElements(Svg.SvgElement element)
-        {            
-            yield return _motionFactory.CreateMotion(element);
+        {
+            foreach (BaseGCode gcode in _motionFactory.CreateMotion(element, _factorX, _factorY))
+                yield return gcode;
 
             foreach (var child in element.Children)
-                foreach (var gcode in GetElements((object)child))
+                foreach (var gcode in GetElements(child))
                     yield return gcode;
-        }
-
-        private IEnumerable<BaseGCode> GetElements(Svg.SvgPath path)
-        {
-            foreach (var segment in path.PathData)
-                yield return _motionFactory.CreateMotion(segment);
         }
     }
 }
