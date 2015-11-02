@@ -27,8 +27,15 @@ namespace ImageToGCode.Engine.Geometry
         {
             int steps = GetIteratorSteps();
             
-            for(int i = 0; i <= steps; i++)
-                yield return GetPoint(1.0 / steps * i);
+            if(steps == 0)
+            {
+                yield return GetPoint(0.0);
+                yield return GetPoint(0.5);
+                yield return GetPoint(1.0);
+            }
+            else
+                for(int i = 0; i <= steps; i++)
+                    yield return GetPoint(1.0 / steps * i);
         }
 
         private Vector GetPoint(double pos)

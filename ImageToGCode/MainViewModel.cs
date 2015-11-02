@@ -394,8 +394,8 @@ namespace ImageToGCode
             if (openFileDialog.ShowDialog() == true)
             {
                 _GCode.Clear();
-                try
-                {
+                //try
+                //{
                     var doc = Svg.SvgDocument.Open(openFileDialog.FileName);
 
                     var gcg = new GCodeFromSVGGenerator(doc, (int)_MinFeed, (int)_Feed, (int)_MaxPower, (int)_MinPower);
@@ -403,11 +403,11 @@ namespace ImageToGCode
                     {
                         _GCode.Add(gc);
                     }
-                }
-                catch (Exception e)
-                {
-                    System.Windows.MessageBox.Show("Ошибка открытия файла", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                }
+                //}
+                //catch (Exception e)
+                //{
+                //    System.Windows.MessageBox.Show("Ошибка открытия файла", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                //}
             }
         }
         private void GenerateAction()

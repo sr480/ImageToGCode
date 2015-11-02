@@ -61,6 +61,10 @@
     <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\GCodeFromSVGGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\GCodeGenerator.cs" />
+    <Compile Include="Engine\GCodeGeneration\MotionFactorySvg.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Engine\GCodeGeneration\SvgToGCodeRenderer.cs" />
     <Compile Include="Engine\GCodeGeneration\IdleStroke.cs" />
     <Compile Include="Engine\GCodeGeneration\MotionFactory.cs" />
     <Compile Include="Engine\GCodeGeneration\FreeMotionStroke.cs" />
@@ -69,6 +73,7 @@
     <Compile Include="Engine\GCodeGeneration\StrokesFromImageLinesGenerator.cs" />
     <Compile Include="Engine\Geometry\Bezier.cs" />
     <Compile Include="Engine\Geometry\FactorVectorFactory.cs" />
+    <Compile Include="Engine\Geometry\MatrixHelpers.cs" />
     <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />
     <Compile Include="Engine\AngleToVector.cs" />
     <Compile Include="Engine\Geometry\Line.cs" />

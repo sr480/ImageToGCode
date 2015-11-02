@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -32,28 +33,20 @@ namespace ImageToGCode.Engine.GCodeGeneration
         public List<BaseGCode> GenerateCode()
         {
             var result = new List<BaseGCode>();
-            MotionFactory mf = new MotionFactory(_MinFeed, _MaxFeed, _MaxPower, _MinPower);
+
+            SvgToGCodeRenderer gr = new SvgToGCodeRenderer(new MotionFactorySvg(_MinFeed, _MaxFeed, _MaxPower, _MinPower));
 
             result.Add(new BaseGCode("G21"));
             result.Add(new BaseGCode("G90"));
             result.Add(new BaseGCode("M3 S0"));
             result.Add(new BaseGCode(string.Format("F{0}", _MaxFeed)));
-
-            result.AddRange(GetElements(_Svg));
+                        
+            _Svg.Draw(gr);
+            result.AddRange(gr.GCode);
 
             result.Add(new BaseGCode("M5"));
             result.Add(new BaseGCode("%"));
             return result;
-        }
-
-        private IEnumerable<BaseGCode> GetElements(Svg.SvgElement element)
-        {
-            foreach (BaseGCode gcode in _motionFactory.CreateMotion(element, _factorX, _factorY))
-                yield return gcode;
-
-            foreach (var child in element.Children)
-                foreach (var gcode in GetElements(child))
-                    yield return gcode;
         }
     }
 }
