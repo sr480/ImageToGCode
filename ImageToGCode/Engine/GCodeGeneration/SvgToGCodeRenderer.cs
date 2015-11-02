@@ -20,7 +20,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
         public float DpiY
         {
-            get { return 300; }
+            get { return 10; }
         }
 
         public void DrawImage(System.Drawing.Image image, System.Drawing.RectangleF destRect, System.Drawing.RectangleF srcRect, System.Drawing.GraphicsUnit graphicsUnit)
@@ -35,12 +35,16 @@ namespace ImageToGCode.Engine.GCodeGeneration
 
         public void DrawPath(System.Drawing.Pen pen, System.Drawing.Drawing2D.GraphicsPath path)
         {
-            //GCode.AddRange(_motionFactory.CreateMotion(path));
+            if (pen.Color != Color.Empty)
+            {
+                Console.WriteLine(pen);
+                GCode.AddRange(_motionFactory.CreateMotion(path, pen.Color));
+            }
         }
 
         public void FillPath(System.Drawing.Brush brush, System.Drawing.Drawing2D.GraphicsPath path)
         {
-            GCode.AddRange(_motionFactory.CreateMotion(path)); //Console.WriteLine("TODD: FillPath");//throw new NotImplementedException();
+            //GCode.AddRange(_motionFactory.CreateMotion(path, Color.GreenYellow)); //Console.WriteLine("TODD: FillPath");//throw new NotImplementedException();
         }
 
         public Svg.ISvgBoundable GetBoundable()

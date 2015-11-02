@@ -155,6 +155,8 @@ namespace ImageToGCode.Engine.Visualisers
         }
         private void VisualiseGCode(DrawingContext dc)
         {
+            const double DBL_Constant = 100;
+
             if (Data == null || !(Data is IEnumerable<BaseGCode>) || ((IEnumerable<BaseGCode>)Data).Count() == 0)
                 return;
 
@@ -170,29 +172,34 @@ namespace ImageToGCode.Engine.Visualisers
 
                 if (firstMotion != null)
                 {
-                    const double DBL_Constant = 100;
+
                     Point start = new Point((firstMotion.Position.X + DBL_Constant) * Magnification,
                         this.ActualHeight - (firstMotion.Position.Y + DBL_Constant) * Magnification);
                     Point end = new Point((curMotion.Position.X + DBL_Constant) * Magnification,
                         this.ActualHeight - (curMotion.Position.Y + DBL_Constant) * Magnification);
 
-                    dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);                    
+                    dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
                 }
 
                 firstMotion = curMotion;
             }
-            
+
+            dc.DrawEllipse(Brushes.Green, new Pen(Brushes.Red, 1), new Point(DBL_Constant, this.ActualHeight - DBL_Constant), 4, 4);
         }
 
         private Color GCodeToColor(BaseMotion motion)
         {
             if (motion is CoordinatMotion)
             {
-                if (((CoordinatMotion)motion).Intensity == 0.0)
+                var cm = (CoordinatMotion)motion;
+                if (cm.Intensity == 0.0)
                     return Colors.PaleGreen;
 
-                byte gcIntence = (byte)(255 - 255 * (((CoordinatMotion)motion).Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
-                return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
+
+                byte r = (byte)(cm.Color.R * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte g = (byte)(cm.Color.G * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte b = (byte)(cm.Color.B * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                return Color.FromRgb(r, g, b);
             }
 
             if (motion is RapidMotion)

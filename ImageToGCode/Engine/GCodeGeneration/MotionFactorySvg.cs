@@ -1,6 +1,7 @@
 using ImageToGCode.Engine.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
@@ -22,22 +23,23 @@ namespace ImageToGCode.Engine.GCodeGeneration
             : base(minFeed, maxFeed, maxPower, minPower)
         {
             Clip = new System.Drawing.Region(new System.Drawing.Rectangle(0, 0, 1200, 1200));
-            _Transform = new Matrix(0.5f, 0, 0, -0.5f, 0, 900);
+            _Transform = new Matrix(1f, 0, 0, -1f, 0, 700);
         }
 
 
-        public IEnumerable<BaseGCode> CreateMotion(GraphicsPath path)
+        public IEnumerable<BaseGCode> CreateMotion(GraphicsPath path, Color color)
         {
+            var p = (GraphicsPath)path.Clone();
             var result = new List<BaseGCode>(1);
 
-            path.Flatten(_Transform, 1f);
-            
-            for (int i = 0; i < path.PathData.Points.Count(); i++)
+            p.Flatten(_Transform, 1f);
+
+            for (int i = 0; i < p.PathData.Points.Count(); i++)
             {
-                if(path.PathData.Types[i] == 0)
-                    result.Add(new RapidMotion(new Vector(path.PathData.Points[i])));
+                if(p.PathData.Types[i] == 0)
+                    result.Add(new RapidMotion(new Vector(p.PathData.Points[i])));
                 else
-                    result.Add(new CoordinatMotion(new Vector(path.PathData.Points[i]), _MaxPower, _MaxFeed));
+                    result.Add(new CoordinatMotion(new Vector(p.PathData.Points[i]), _MaxPower, _MaxFeed, color));
             }
             return result;
         }
