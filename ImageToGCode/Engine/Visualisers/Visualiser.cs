@@ -170,10 +170,11 @@ namespace ImageToGCode.Engine.Visualisers
 
                 if (firstMotion != null)
                 {
-                    Point start = new Point((firstMotion.Position.X + 15.0) * Magnification,
-                        this.ActualHeight - (firstMotion.Position.Y + 15.0) * Magnification);
-                    Point end = new Point((curMotion.Position.X + 15.0) * Magnification,
-                        this.ActualHeight - (curMotion.Position.Y + 15.0) * Magnification);
+                    const double DBL_Constant = 100;
+                    Point start = new Point((firstMotion.Position.X + DBL_Constant) * Magnification,
+                        this.ActualHeight - (firstMotion.Position.Y + DBL_Constant) * Magnification);
+                    Point end = new Point((curMotion.Position.X + DBL_Constant) * Magnification,
+                        this.ActualHeight - (curMotion.Position.Y + DBL_Constant) * Magnification);
 
                     dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);                    
                 }
