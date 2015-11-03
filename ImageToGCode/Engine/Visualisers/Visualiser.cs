@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ImageToGCode.Engine.GCodeGeneration;
+using ImageToGCode.Engine.GCodeGeneration.ImageProcessor;
 
 namespace ImageToGCode.Engine.Visualisers
 {
@@ -103,59 +104,55 @@ namespace ImageToGCode.Engine.Visualisers
         }
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.OnPropertyChanged(e);
+            base.OnPropertyChanged(e);            
         }
         protected override void OnRender(DrawingContext dc)
         {
-            if (Data is LinesVisualiser)
-                VisualiseLines(dc);
-            if (Data is StrokesFromImageLinesGenerator)
-                VisualiseStrokes(dc);
             if (Data is IEnumerable<BaseGCode>)
                 VisualiseGCode(dc);
+            if (Data is VectorProcessorViewModel)
+                VisualiseVector(dc);
         }
-
-        private void VisualiseLines(DrawingContext dc)
+        private void VisualiseVector(DrawingContext dc)
         {
-            if (Data == null || !(Data is LinesVisualiser) || ((LinesVisualiser)Data).Lines.Count == 0)
+            if (Data == null || !(Data is VectorProcessorViewModel) || ((VectorProcessorViewModel)Data).PathGroups.Count == 0)
                 return;
+            var data = (VectorProcessorViewModel)Data;
 
-            var data = (LinesVisualiser)Data;
-            foreach (var vline in data.Lines)
+            foreach(var vPathGrp in data.PathGroups)
             {
-                Point start = new Point(vline.V1.X * Magnification, this.ActualHeight - vline.V1.Y * Magnification);
-                Point end = new Point(vline.V2.X * Magnification, this.ActualHeight - vline.V2.Y * Magnification);
-                byte gcIntence = (byte)(255 - 255 * vline.Intensity);
+                if (!vPathGrp.Engrave)
+                    continue;
 
-                dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);
-            }
-        }
-        private void VisualiseStrokes(DrawingContext dc)
-        {
-            if (Data == null || !(Data is StrokesFromImageLinesGenerator) || ((StrokesFromImageLinesGenerator)Data).Strokes.Count == 0)
-                return;
+                foreach(var pth in vPathGrp.PathList)
+                {
+                    if (pth.PathData.Points.Count() == 0)
+                        continue;
 
-            var data = (StrokesFromImageLinesGenerator)Data;
-
-            FreeMotionStroke firstStroke = data.Strokes[0];
-
-            for (int i = 1; i < data.Strokes.Count; i++)
-            {
-                FreeMotionStroke curStroke = data.Strokes[i];
-                Point start = new Point((firstStroke.DestinationPoint.X + data.IdleDistance) * Magnification,
-                    this.ActualHeight - (firstStroke.DestinationPoint.Y + data.IdleDistance) * Magnification);
-
-                Point end = new Point((curStroke.DestinationPoint.X + data.IdleDistance) * Magnification,
-                    this.ActualHeight - (curStroke.DestinationPoint.Y + data.IdleDistance) * Magnification);
-
-                dc.DrawLine(new Pen(new SolidColorBrush(StrokeToColor(curStroke)), 1.0), start, end);
-
-                firstStroke = curStroke;
+                    System.Drawing.PointF? prevPoint = null;
+                    for (int i = 0; i < pth.PathData.Points.Count(); i++)
+                    {
+                        if (pth.PathData.Types[i] == 0 | pth.PathData.Types[i] == 1)
+                        {
+                            if (prevPoint.HasValue)
+                            {
+                                Point start = new Point(prevPoint.Value.X * Magnification,
+                                    this.ActualHeight - prevPoint.Value.Y * Magnification);
+                                Point end = new Point((pth.PathData.Points[i].X) * Magnification,
+                                    this.ActualHeight - pth.PathData.Points[i].Y * Magnification);
+                                dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
+                            }
+                            prevPoint = pth.PathData.Points[i];
+                        }
+                        //else
+                            //result.Add(new CoordinatMotion(new Vector(pth.PathData.Points[i]), _MaxPower, _MaxFeed));                        
+                    }
+                }
             }
         }
         private void VisualiseGCode(DrawingContext dc)
         {
-            const double DBL_Constant = 100;
+            const double offset = 100;
 
             if (Data == null || !(Data is IEnumerable<BaseGCode>) || ((IEnumerable<BaseGCode>)Data).Count() == 0)
                 return;
@@ -173,10 +170,10 @@ namespace ImageToGCode.Engine.Visualisers
                 if (firstMotion != null)
                 {
 
-                    Point start = new Point((firstMotion.Position.X + DBL_Constant) * Magnification,
-                        this.ActualHeight - (firstMotion.Position.Y + DBL_Constant) * Magnification);
-                    Point end = new Point((curMotion.Position.X + DBL_Constant) * Magnification,
-                        this.ActualHeight - (curMotion.Position.Y + DBL_Constant) * Magnification);
+                    Point start = new Point((firstMotion.Position.X + offset) * Magnification,
+                        this.ActualHeight - (firstMotion.Position.Y + offset) * Magnification);
+                    Point end = new Point((curMotion.Position.X + offset) * Magnification,
+                        this.ActualHeight - (curMotion.Position.Y + offset) * Magnification);
 
                     dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
                 }
@@ -184,7 +181,7 @@ namespace ImageToGCode.Engine.Visualisers
                 firstMotion = curMotion;
             }
 
-            dc.DrawEllipse(Brushes.Green, new Pen(Brushes.Red, 1), new Point(DBL_Constant, this.ActualHeight - DBL_Constant), 4, 4);
+            dc.DrawEllipse(Brushes.Green, new Pen(Brushes.Red, 1), new Point(offset, this.ActualHeight - offset), 4, 4);
         }
 
         private Color GCodeToColor(BaseMotion motion)
