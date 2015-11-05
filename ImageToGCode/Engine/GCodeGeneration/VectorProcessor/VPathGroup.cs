@@ -77,6 +77,8 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 
         public IEnumerable<BaseGCode> Generate()
         {
+            PathList = (new ShortestWayClosestPath(PathList)).PerfectGraphicPathCollection;
+            
             if (Engrave)
             {
                 yield return new BaseGCode(string.Format("(Path: F: {0} mm/min, P: {1})", Feed, Power));
