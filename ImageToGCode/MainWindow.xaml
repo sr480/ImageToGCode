@@ -66,7 +66,7 @@
             <TabItem Header="Вектор">
                 <StackPanel>
                     <Button Command="{Binding VectorProcessor.OpenSvg}">Открыть вектор</Button>
-                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" MinHeight="150" MaxHeight="400">
+                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" SelectedValue="{Binding VectorProcessor.SelectedGroup}" MinHeight="150" MaxHeight="400">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
@@ -79,6 +79,8 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
+                    <Button Command="{Binding VectorProcessor.MoveUp}">/\ Переместить вверх</Button>
+                    <Button Command="{Binding VectorProcessor.MoveDown}">\/ Переместить вниз</Button>
 
                     <Button Command="{Binding Generate}">Генерировать</Button>
                     <Button Command="{Binding Save}">Сохранить</Button>                    
