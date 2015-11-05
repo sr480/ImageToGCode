@@ -104,7 +104,7 @@ namespace ImageToGCode.Engine.Visualisers
         }
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.OnPropertyChanged(e);            
+            base.OnPropertyChanged(e);
         }
         protected override void OnRender(DrawingContext dc)
         {
@@ -119,36 +119,50 @@ namespace ImageToGCode.Engine.Visualisers
                 return;
             var data = (VectorProcessorViewModel)Data;
 
-            foreach(var vPathGrp in data.PathGroups)
+            foreach (var vPathGrp in data.PathGroups)
             {
                 if (!vPathGrp.Engrave)
                     continue;
 
-                foreach(var pth in vPathGrp.PathList)
+                foreach (var pth in vPathGrp.PathList)
                 {
                     if (pth.PathData.Points.Count() == 0)
                         continue;
 
                     System.Drawing.PointF? prevPoint = null;
+                    System.Drawing.PointF? startPoint = null;
+
                     for (int i = 0; i < pth.PathData.Points.Count(); i++)
                     {
-                        if (pth.PathData.Types[i] == 0 | pth.PathData.Types[i] == 1)
+                        var curPthType = pth.PathData.Types[i];
+                        var curPoint = pth.PathData.Points[i];
+                        //Find dirst point in path
+                        if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))
+                            startPoint = prevPoint = curPoint;
+                        //Draw line on path points
+                        else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Line) ||
+                            Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Bezier))
                         {
                             if (prevPoint.HasValue)
                             {
-                                Point start = new Point(prevPoint.Value.X * Magnification,
-                                    this.ActualHeight - prevPoint.Value.Y * Magnification);
-                                Point end = new Point((pth.PathData.Points[i].X) * Magnification,
-                                    this.ActualHeight - pth.PathData.Points[i].Y * Magnification);
+                                Point start = PointFToPoint(prevPoint.Value);
+                                Point end = PointFToPoint(curPoint);
                                 dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
                             }
-                            prevPoint = pth.PathData.Points[i];
+                            prevPoint = curPoint;
+
+                            //ClosePath
+                            if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.CloseSubpath))
+                            {
+                                Point start = PointFToPoint(curPoint);
+                                Point end = PointFToPoint(startPoint.Value);
+                                dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
+                            }
                         }
-                        //else
-                            //result.Add(new CoordinatMotion(new Vector(pth.PathData.Points[i]), _MaxPower, _MaxFeed));                        
                     }
                 }
             }
+            DrawArrows(dc);
         }
         private void VisualiseGCode(DrawingContext dc)
         {
@@ -170,10 +184,10 @@ namespace ImageToGCode.Engine.Visualisers
                 if (firstMotion != null)
                 {
 
-                    Point start = new Point((firstMotion.Position.X + offset) * Magnification,
-                        this.ActualHeight - (firstMotion.Position.Y + offset) * Magnification);
-                    Point end = new Point((curMotion.Position.X + offset) * Magnification,
-                        this.ActualHeight - (curMotion.Position.Y + offset) * Magnification);
+                    Point start = new Point((firstMotion.Position.X) * Magnification,
+                        this.ActualHeight - (firstMotion.Position.Y) * Magnification);
+                    Point end = new Point((curMotion.Position.X) * Magnification,
+                        this.ActualHeight - (curMotion.Position.Y) * Magnification);
 
                     dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
                 }
@@ -181,7 +195,20 @@ namespace ImageToGCode.Engine.Visualisers
                 firstMotion = curMotion;
             }
 
-            dc.DrawEllipse(Brushes.Green, new Pen(Brushes.Red, 1), new Point(offset, this.ActualHeight - offset), 4, 4);
+            DrawArrows(dc);
+        }
+
+        private void DrawArrows(DrawingContext dc)
+        {
+            Pen arrowPen = new Pen(Brushes.DarkGray, 1);
+            dc.DrawLine(arrowPen, CoordToPoint(0, 0), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(3, 95), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(-3, 95), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(0, 0), CoordToPoint(100, 0));
+            dc.DrawLine(arrowPen, CoordToPoint(95, 3), CoordToPoint(100, 0));
+            dc.DrawLine(arrowPen, CoordToPoint(95, -3), CoordToPoint(100, 0));
+
+            dc.DrawEllipse(Brushes.Red, new Pen(Brushes.DarkGray, 1), CoordToPoint(0, 0), 3, 3);
         }
 
         private Color GCodeToColor(BaseMotion motion)
@@ -193,9 +220,9 @@ namespace ImageToGCode.Engine.Visualisers
                     return Colors.PaleGreen;
 
 
-                byte r = (byte)(cm.Color.R * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
-                byte g = (byte)(cm.Color.G * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
-                byte b = (byte)(cm.Color.B * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte r = (byte)(255 - (255 - cm.Color.R) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte g = (byte)(255 - (255 - cm.Color.G) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte b = (byte)(255 - (255 - cm.Color.B) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
                 return Color.FromRgb(r, g, b);
             }
 
@@ -219,6 +246,14 @@ namespace ImageToGCode.Engine.Visualisers
             }
 
             return Colors.HotPink;
+        }
+        private Point CoordToPoint(double x, double y)
+        {
+            return new Point(x * Magnification, ActualHeight - y * Magnification);
+        }
+        private Point PointFToPoint(System.Drawing.PointF pt)
+        {
+            return new Point(pt.X * Magnification, ActualHeight - pt.Y * Magnification);
         }
     }
 }

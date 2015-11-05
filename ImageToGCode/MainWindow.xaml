@@ -66,22 +66,24 @@
             <TabItem Header="Вектор">
                 <StackPanel>
                     <Button Command="{Binding VectorProcessor.OpenSvg}">Открыть вектор</Button>
-                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}">
+                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" MinHeight="150" MaxHeight="400">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
                                     <CheckBox IsChecked="{Binding Engrave}" Foreground="{Binding Brush}">Гравировать</CheckBox>
                                     <Label>Подача:</Label>
-                                    <TextBox Text="{Binding Feed, StringFormat='X:0'}"/>
+                                    <TextBox Text="{Binding Feed}"/>
                                     <Label>Мощность:</Label>
-                                    <TextBox Text="{Binding Power, StringFormat='X:0'}"/>
+                                    <TextBox Text="{Binding Power}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    
-                    <Button Command="{Binding Save}">Сохранить</Button>
+
+                    <Button Command="{Binding Generate}">Генерировать</Button>
+                    <Button Command="{Binding Save}">Сохранить</Button>                    
                     <Button Click="Button_Click" >Просмотр</Button>
+                    <Button Click="Button_Click_1" >Просмотр GCode</Button>
 
                     <HeaderedContentControl Header="Увеличение:">
                         <ComboBox ItemsSource="{Binding MagnificationSource}" SelectedValue="{Binding Magnification}">
@@ -99,8 +101,8 @@
         <TabControl Grid.Column="1">
             <TabItem Header="Просмотр">
                 <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}" 
-                                MaxIntensity="{Binding MaxPower}"
-                                MinIntensity="{Binding MinPower}"
+                                MaxIntensity="{Binding ImageProcessor.MaxPower}"
+                                MinIntensity="{Binding ImageProcessor.MinPower}"
                                 Data="{Binding VectorProcessorViewModel}"/>
                 <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
                     

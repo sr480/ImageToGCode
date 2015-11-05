@@ -6,17 +6,17 @@ using System.Text;
 
 namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 {
-    class SvgToGCodeRenderer : Svg.ISvgRenderer
+    class SvgToVPathRenderer : Svg.ISvgRenderer
     {
         private Stack<Svg.ISvgBoundable> _boundables;
         private SvgTransformator _transformator;
 
         Dictionary<Color, VPathGroup> _result;
 
-        public SvgToGCodeRenderer()
+        public SvgToVPathRenderer(double ppm)
         {
             _result = new Dictionary<Color, VPathGroup>();
-            _transformator = new SvgTransformator();
+            _transformator = new SvgTransformator(ppm);
             _boundables = new Stack<Svg.ISvgBoundable>();
         }
 

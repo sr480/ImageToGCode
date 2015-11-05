@@ -17,7 +17,7 @@ namespace ImageToGCode
     {
         #region Fields
         private double _Magnification = 1.0;
-        private ObservableCollection<Engine.GCodeGeneration.BaseGCode> _GCode;        
+        private ObservableCollection<Engine.GCodeGeneration.BaseGCode> _GCode;
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
         #endregion
         public ImageProcessorViewModel ImageProcessor { get; private set; }
@@ -42,7 +42,8 @@ namespace ImageToGCode
         #endregion
 
         #region Commands
-         public Command Save { get; private set; }
+        public Command Save { get; private set; }
+        public Command Generate { get; private set; }
         #endregion
 
         public ObservableCollection<Engine.GCodeGeneration.BaseGCode> GCode
@@ -52,14 +53,15 @@ namespace ImageToGCode
 
         public MainViewModel()
         {
-            ImageProcessor = new ImageProcessorViewModel();
-            VectorProcessor = new VectorProcessorViewModel();
-
             _GCode = new ObservableCollection<Engine.GCodeGeneration.BaseGCode>();
             _GCode.CollectionChanged += GCode_CollectionChanged;
             
-            Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
+            ImageProcessor = new ImageProcessorViewModel(_GCode);
+            VectorProcessor = new VectorProcessorViewModel();
             
+            Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
+            Generate = new Command((x) => GenerateAction(), (x) => true);
+
             MagnificationSource = new List<double>();
             MagnificationSource.Add(0.5);
             MagnificationSource.Add(1);
@@ -69,7 +71,7 @@ namespace ImageToGCode
             MagnificationSource.Add(20);
         }
         #region Command implements
-                
+
         private void SaveGCodeAction()
         {
             SaveFileDialog svDlg = new SaveFileDialog();
@@ -93,8 +95,15 @@ namespace ImageToGCode
                 }
             }
         }
+
+        private void GenerateAction()
+        {
+            _GCode.Clear();
+            foreach (var gc in VectorProcessor.Generate())
+                _GCode.Add(gc);
+        }
         #endregion
-        
+
         private void GCode_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             Save.RaiseCanExecuteChanged();

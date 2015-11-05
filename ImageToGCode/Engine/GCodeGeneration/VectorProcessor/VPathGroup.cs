@@ -74,6 +74,44 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
             PathList.AddRange(paths);
         }
 
+        public IEnumerable<BaseGCode> Generate()
+        {
+            if (Engrave)
+            {
+                yield return new BaseGCode(string.Format("(Path: F: {0} mm/min, P: {1})", Feed, Power));
+
+                foreach (var pth in PathList)
+                {
+                    PointF? startPoint = null;
+
+                    for (int i = 0; i < pth.PathData.Points.Count(); i++)
+                    {
+                        var curPthType = pth.PathData.Types[i];
+                        var curPoint = pth.PathData.Points[i];
+
+                        //Rapid move to path start
+                        if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))
+                        {
+                            yield return new RapidMotion(new Geometry.Vector(curPoint));
+                            startPoint = curPoint;                            
+                        }
+                        else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Line) ||
+                            Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Bezier))
+                        {
+                            //Move to point on path
+                            yield return new CoordinatMotion(new Geometry.Vector(curPoint), Power, Feed, PathColor);
+                            
+                            //Close path
+                            if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.CloseSubpath))
+                            {
+                                yield return new CoordinatMotion(new Geometry.Vector(startPoint.Value), Power, Feed, PathColor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         #region IPropertyChanged
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
         private void OnPropertyChanged(string propertyName)

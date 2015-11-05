@@ -1,4 +1,5 @@
-﻿using ImageToGCode.Engine.GCodeGeneration.VectorProcessor;
+﻿using ImageToGCode.Engine.GCodeGeneration;
+using ImageToGCode.Engine.GCodeGeneration.VectorProcessor;
 using ImageToGCode.Tools;
 using Microsoft.Win32;
 using System;
@@ -33,7 +34,7 @@ namespace ImageToGCode
                 var doc = Svg.SvgDocument.Open(openFileDialog.FileName);
 
                 var gcg = new VPathGroupSVGGenerator(doc);
-                foreach (var vPath in gcg.GenerateCode())
+                foreach (var vPath in gcg.GenerateVPathGroups())
                 {
                     PathGroups.Add(vPath);
                 }
@@ -43,6 +44,13 @@ namespace ImageToGCode
                 //    System.Windows.MessageBox.Show("Ошибка открытия файла", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 //}
             }
+        }
+
+        public IEnumerable<BaseGCode> Generate()
+        {
+            foreach (var grp in PathGroups)
+                foreach (var gc in grp.Generate())
+                    yield return gc;
         }
         #region IPropertyChanged
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;

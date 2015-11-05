@@ -19,16 +19,16 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
             set { _Transform = value; }
         }
 
-        public SvgTransformator()
+        public SvgTransformator(double ppm)
         {
             Clip = new Region(new Rectangle(0, 0, 1200, 1200));
-            _Transform = new Matrix(1f, 0, 0, -1f, 0, 700);
+            _Transform = new Matrix((float)(1/ppm), 0, 0, -(float)(1/ppm), 0, 297);
         }
 
         public GraphicsPath TransformPath(GraphicsPath path)
         {
             var p = (GraphicsPath)path.Clone();            
-            p.Flatten(_Transform, 1f);
+            p.Flatten(_Transform, 0.5f);
             return p;
         }
         public void RotateTransform(float angle)
