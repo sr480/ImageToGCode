@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 
 
-namespace ImageToGCode.Engine.GCodeGeneration
+namespace ImageToGCode.Engine.GCodeGeneration.ImageProcessor
 {
     class FreeMotionStroke
     {

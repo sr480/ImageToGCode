@@ -28,6 +28,13 @@ namespace ImageToGCode
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            visual.Data = null;
+            visual.Data = ((MainViewModel)DataContext).VectorProcessor;//.GCode.ToList();
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            visual.Data = null;
             visual.Data = ((MainViewModel)DataContext).GCode.ToList();
         }
     }

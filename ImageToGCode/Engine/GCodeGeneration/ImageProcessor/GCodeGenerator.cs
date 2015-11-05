@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 
-namespace ImageToGCode.Engine.GCodeGeneration
+namespace ImageToGCode.Engine.GCodeGeneration.ImageProcessor
 {
     class GCodeGenerator
     {
@@ -26,7 +26,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
         public List<BaseGCode> GenerateCode()
         {
             var result = new List<BaseGCode>();
-            MotionFactory mf = new MotionFactory(_MinFeed, _MaxFeed, _MaxPower, _MinPower);
+            MotionFactoryImage mf = new MotionFactoryImage(_MinFeed, _MaxFeed, _MaxPower, _MinPower);
                         
             result.Add(new BaseGCode("G21"));
             result.Add(new BaseGCode("G90"));

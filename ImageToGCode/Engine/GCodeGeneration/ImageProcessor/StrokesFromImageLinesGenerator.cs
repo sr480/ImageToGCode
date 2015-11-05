@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 
 
-namespace ImageToGCode.Engine.GCodeGeneration
+namespace ImageToGCode.Engine.GCodeGeneration.ImageProcessor
 {
     class StrokesFromImageLinesGenerator
     {
@@ -37,7 +37,7 @@ namespace ImageToGCode.Engine.GCodeGeneration
             _UseIdleZones = useIdleZones;
         }
 
-        public void GenerateStrokesNEW()
+        public void GenerateStrokes()
         {
             bool isReversed = false;
 
