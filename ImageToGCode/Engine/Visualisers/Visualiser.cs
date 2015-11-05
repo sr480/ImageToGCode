@@ -126,16 +126,18 @@ namespace ImageToGCode.Engine.Visualisers
 
                 foreach (var pth in vPathGrp.PathList)
                 {
-                    if (pth.PathData.Points.Count() == 0)
+                    var currentPathData = pth.PathData;
+
+                    if (currentPathData.Points.Length == 0)
                         continue;
 
                     System.Drawing.PointF? prevPoint = null;
                     System.Drawing.PointF? startPoint = null;
 
-                    for (int i = 0; i < pth.PathData.Points.Count(); i++)
+                    for (int i = 0; i < currentPathData.Points.Length; i++)
                     {
-                        var curPthType = pth.PathData.Types[i];
-                        var curPoint = pth.PathData.Points[i];
+                        var curPthType = currentPathData.Types[i];
+                        var curPoint = currentPathData.Points[i];
                         //Find dirst point in path
                         if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))
                             startPoint = prevPoint = curPoint;
