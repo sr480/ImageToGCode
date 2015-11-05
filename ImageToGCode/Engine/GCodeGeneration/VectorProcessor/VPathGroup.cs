@@ -15,6 +15,7 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
         private int _Power = 40;
         private bool _Engrave = true;
         public Color PathColor { get; private set; }
+        public bool Optimize { get; set; }
         public System.Windows.Media.Brush Brush 
         { 
             get 
