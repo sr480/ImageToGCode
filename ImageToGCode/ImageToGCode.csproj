@@ -35,17 +35,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Svg">
+      <HintPath>..\packages\Svg.2.1.0\lib\Svg.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -55,15 +55,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Engine\GCodeGeneration\ArcMotion.cs" />
+    <Compile Include="Engine\GCodeGeneration\BaseGCode.cs" />
     <Compile Include="Engine\GCodeGeneration\BaseMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
-    <Compile Include="Engine\GCodeGeneration\GCodeGenerator.cs" />
-    <Compile Include="Engine\GCodeGeneration\IdleStroke.cs" />
-    <Compile Include="Engine\GCodeGeneration\MotionFactory.cs" />
-    <Compile Include="Engine\GCodeGeneration\FreeMotionStroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\VPathGroupSVGGenerator.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\GCodeGenerator.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\SvgTransformator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\SvgToGCodeRenderer.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\IdleStroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\MotionFactory.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\FreeMotionStroke.cs" />
     <Compile Include="Engine\GCodeGeneration\RapidMotion.cs" />
-    <Compile Include="Engine\GCodeGeneration\Stroke.cs" />
-    <Compile Include="Engine\GCodeGeneration\StrokesFromImageLinesGenerator.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\Stroke.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\StrokesFromImageLinesGenerator.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\VPathGroup.cs" />
+    <Compile Include="Engine\Geometry\Bezier.cs" />
+    <Compile Include="Engine\Geometry\FactorVectorFactory.cs" />
+    <Compile Include="Engine\Geometry\MatrixHelpers.cs" />
+    <Compile Include="Engine\Geometry\PathTypeHelper.cs" />
     <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />
     <Compile Include="Engine\AngleToVector.cs" />
     <Compile Include="Engine\Geometry\Line.cs" />
@@ -81,8 +93,10 @@
     <Compile Include="Engine\Visualisers\Visualiser.cs" />
     <Compile Include="Engine\Visualisers\VisualLine.cs" />
     <Compile Include="GCodeGenerator.cs" />
+    <Compile Include="ImageProcessorViewModel.cs" />
     <Compile Include="ParameterHelpers\FeedToAngle.cs" />
     <Compile Include="Tools\Command.cs" />
+    <Compile Include="VectorProcessorViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -119,6 +133,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

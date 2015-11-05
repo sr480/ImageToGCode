@@ -8,11 +8,11 @@ using System.Text;
 
 namespace ImageToGCode.Engine.GCodeGeneration
 {
-    abstract class BaseMotion
+    abstract class BaseMotion : BaseGCode
     {
         public Vector Position { get; private set; }
 
-        public BaseMotion(Vector position)
+        public BaseMotion(Vector position) : base("")
         {
             Position = position;
         }

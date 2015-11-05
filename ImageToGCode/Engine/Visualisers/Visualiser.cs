@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ImageToGCode.Engine.GCodeGeneration;
+using ImageToGCode.Engine.GCodeGeneration.ImageProcessor;
 
 namespace ImageToGCode.Engine.Visualisers
 {
@@ -47,6 +48,27 @@ namespace ImageToGCode.Engine.Visualisers
     /// </summary>
     class Visualiser : Canvas
     {
+        public int MinIntensity
+        {
+            get { return (int)GetValue(MinIntensityProperty); }
+            set { SetValue(MinIntensityProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MinIntensity.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MinIntensityProperty =
+            DependencyProperty.Register("MinIntensity", typeof(int), typeof(Visualiser), new UIPropertyMetadata(0));
+        public int MaxIntensity
+        {
+            get { return (int)GetValue(MaxIntensityProperty); }
+            set { SetValue(MaxIntensityProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MaxIntensity.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MaxIntensityProperty =
+            DependencyProperty.Register("MaxIntensity", typeof(int), typeof(Visualiser), new UIPropertyMetadata(0));
+
+
+
         public object Data
         {
             get { return GetValue(DataProperty); }
@@ -74,7 +96,7 @@ namespace ImageToGCode.Engine.Visualisers
 
         static Visualiser()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(Visualiser), new FrameworkPropertyMetadata(typeof(Visualiser)));            
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(Visualiser), new FrameworkPropertyMetadata(typeof(Visualiser)));
         }
         public Visualiser()
         {
@@ -86,50 +108,128 @@ namespace ImageToGCode.Engine.Visualisers
         }
         protected override void OnRender(DrawingContext dc)
         {
-            if (Data is LinesVisualiser)
-                VisualiseLines(dc);
-            if (Data is StrokesFromImageLinesGenerator)
-                VisualiseStrokes(dc);
-
+            if (Data is IEnumerable<BaseGCode>)
+                VisualiseGCode(dc);
+            if (Data is VectorProcessorViewModel)
+                VisualiseVector(dc);
         }
-
-        private void VisualiseLines(DrawingContext dc)
+        private void VisualiseVector(DrawingContext dc)
         {
-            if (Data == null || !(Data is LinesVisualiser) || ((LinesVisualiser)Data).Lines.Count == 0)
+            if (Data == null || !(Data is VectorProcessorViewModel) || ((VectorProcessorViewModel)Data).PathGroups.Count == 0)
                 return;
+            var data = (VectorProcessorViewModel)Data;
 
-            var data = (LinesVisualiser)Data;
-            foreach (var vline in data.Lines)
+            foreach (var vPathGrp in data.PathGroups)
             {
-                Point start = new Point(vline.V1.X * Magnification, this.ActualHeight - vline.V1.Y * Magnification);
-                Point end = new Point(vline.V2.X * Magnification, this.ActualHeight - vline.V2.Y * Magnification);
-                byte gcIntence = (byte)(255 - 255 * vline.Intensity);
+                if (!vPathGrp.Engrave)
+                    continue;
 
-                dc.DrawLine(new Pen(new SolidColorBrush(Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence)), 1.0), start, end);
-            }            
-        }
-        private void VisualiseStrokes(DrawingContext dc)
-        {
-            if (Data == null || !(Data is StrokesFromImageLinesGenerator) || ((StrokesFromImageLinesGenerator)Data).Strokes.Count == 0)
-                return;
+                foreach (var pth in vPathGrp.PathList)
+                {
+                    if (pth.PathData.Points.Count() == 0)
+                        continue;
 
-            var data = (StrokesFromImageLinesGenerator)Data;
+                    System.Drawing.PointF? prevPoint = null;
+                    System.Drawing.PointF? startPoint = null;
 
-            FreeMotionStroke firstStroke = data.Strokes[0];
+                    for (int i = 0; i < pth.PathData.Points.Count(); i++)
+                    {
+                        var curPthType = pth.PathData.Types[i];
+                        var curPoint = pth.PathData.Points[i];
+                        //Find dirst point in path
+                        if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))
+                            startPoint = prevPoint = curPoint;
+                        //Draw line on path points
+                        else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Line) ||
+                            Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Bezier))
+                        {
+                            if (prevPoint.HasValue)
+                            {
+                                Point start = PointFToPoint(prevPoint.Value);
+                                Point end = PointFToPoint(curPoint);
+                                dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
+                            }
+                            prevPoint = curPoint;
 
-            for (int i = 1; i < data.Strokes.Count; i++)
-            {
-                FreeMotionStroke curStroke = data.Strokes[i];
-                Point start = new Point((firstStroke.DestinationPoint.X + data.IdleDistance) * Magnification,
-                    this.ActualHeight - (firstStroke.DestinationPoint.Y + data.IdleDistance) * Magnification);
-
-                Point end = new Point((curStroke.DestinationPoint.X + data.IdleDistance) * Magnification,
-                    this.ActualHeight - (curStroke.DestinationPoint.Y + data.IdleDistance) * Magnification);
-
-                dc.DrawLine(new Pen(new SolidColorBrush(StrokeToColor(curStroke)), 1.0), start, end);
-
-                firstStroke = curStroke;
+                            //ClosePath
+                            if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.CloseSubpath))
+                            {
+                                Point start = PointFToPoint(curPoint);
+                                Point end = PointFToPoint(startPoint.Value);
+                                dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
+                            }
+                        }
+                    }
+                }
             }
+            DrawArrows(dc);
+        }
+        private void VisualiseGCode(DrawingContext dc)
+        {
+            const double offset = 100;
+
+            if (Data == null || !(Data is IEnumerable<BaseGCode>) || ((IEnumerable<BaseGCode>)Data).Count() == 0)
+                return;
+
+            var data = (IList<BaseGCode>)Data;
+
+            BaseMotion firstMotion = null;
+            foreach (BaseGCode item in data)
+            {
+                if (!(item is BaseMotion))
+                    continue;
+
+                var curMotion = (BaseMotion)item;
+
+                if (firstMotion != null)
+                {
+
+                    Point start = new Point((firstMotion.Position.X) * Magnification,
+                        this.ActualHeight - (firstMotion.Position.Y) * Magnification);
+                    Point end = new Point((curMotion.Position.X) * Magnification,
+                        this.ActualHeight - (curMotion.Position.Y) * Magnification);
+
+                    dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
+                }
+
+                firstMotion = curMotion;
+            }
+
+            DrawArrows(dc);
+        }
+
+        private void DrawArrows(DrawingContext dc)
+        {
+            Pen arrowPen = new Pen(Brushes.DarkGray, 1);
+            dc.DrawLine(arrowPen, CoordToPoint(0, 0), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(3, 95), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(-3, 95), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(0, 0), CoordToPoint(100, 0));
+            dc.DrawLine(arrowPen, CoordToPoint(95, 3), CoordToPoint(100, 0));
+            dc.DrawLine(arrowPen, CoordToPoint(95, -3), CoordToPoint(100, 0));
+
+            dc.DrawEllipse(Brushes.Red, new Pen(Brushes.DarkGray, 1), CoordToPoint(0, 0), 3, 3);
+        }
+
+        private Color GCodeToColor(BaseMotion motion)
+        {
+            if (motion is CoordinatMotion)
+            {
+                var cm = (CoordinatMotion)motion;
+                if (cm.Intensity == 0.0)
+                    return Colors.PaleGreen;
+
+
+                byte r = (byte)(255 - (255 - cm.Color.R) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte g = (byte)(255 - (255 - cm.Color.G) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                byte b = (byte)(255 - (255 - cm.Color.B) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
+                return Color.FromRgb(r, g, b);
+            }
+
+            if (motion is RapidMotion)
+                return Colors.HotPink;
+
+            return Colors.HotPink;
         }
 
         private Color StrokeToColor(FreeMotionStroke stroke)
@@ -138,14 +238,22 @@ namespace ImageToGCode.Engine.Visualisers
                 return Colors.BlueViolet;
             if (stroke is Stroke)
             {
-                if(((Stroke)stroke).Intensity == 0.0)
+                if (((Stroke)stroke).Intensity == 0.0)
                     return Colors.PaleGreen;
 
                 byte gcIntence = (byte)(255 - 255 * ((Stroke)stroke).Intensity);
                 return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
             }
-            
+
             return Colors.HotPink;
+        }
+        private Point CoordToPoint(double x, double y)
+        {
+            return new Point(x * Magnification, ActualHeight - y * Magnification);
+        }
+        private Point PointFToPoint(System.Drawing.PointF pt)
+        {
+            return new Point(pt.X * Magnification, ActualHeight - pt.Y * Magnification);
         }
     }
 }

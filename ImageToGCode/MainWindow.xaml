@@ -10,78 +10,100 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <TabControl>
-            <TabItem Header="Гравировка">
-                <DockPanel Grid.Column="0" Grid.Row="0" Margin="4">
-                    <StackPanel>
-                        <HeaderedContentControl Header="Ширина (мм):">
-                            <TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Высота (мм):">
-                            <TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <CheckBox IsChecked="{Binding KeepAspectRatio}">Сохранять пропорции</CheckBox>
-                        <HeaderedContentControl Header="Разрешение строк (мм):">
-                            <TextBox Text="{Binding LineResolution, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Разрешение точек (мм):">
-                            <TextBox Text="{Binding PointResolution, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Угол наклона (°):">
-                            <TextBox Text="{Binding Angle, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl>
-                            <HeaderedContentControl.Header>
-                                <CheckBox IsChecked="{Binding UseFreeZone}">Использовать холостые зоны (мм)</CheckBox>
-                            </HeaderedContentControl.Header>
-                            <TextBox Text="{Binding FreeZone, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Подача (мм/мин):">
-                            <TextBox Text="{Binding Feed, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Минимальная подача (мм/мин):">
-                            <TextBox Text="{Binding MinFeed, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Максимальная мощность:">
-                            <TextBox Text="{Binding MaxPower, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Минимальная мощность:">
-                            <TextBox Text="{Binding MinPower, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl Header="Метод интерполяции:">
-                            <ComboBox ItemsSource="{Binding InterpolatorsSource}" SelectedValue="{Binding SelectedInterpolator}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Description}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </HeaderedContentControl>
-                        <CheckBox IsChecked="{Binding EngraveBothDirection}">Гравировка в обоих направлениях</CheckBox>
-                        <HeaderedContentControl Header="Расчетное время:">
-                            <TextBlock Text="{Binding EstimatedTime}"/>
-                        </HeaderedContentControl>
+            <TabItem Header="Изображения">
+                <StackPanel>
+                    <Button Command="{Binding ImageProcessor.OpenImage}">Открыть изображение</Button>
+                    <Button Command="{Binding ImageProcessor.Generate}">Генерировать</Button>
+                    <HeaderedContentControl Header="Ширина (мм):">
+                        <TextBox Text="{Binding ImageProcessor.Width, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Высота (мм):">
+                        <TextBox Text="{Binding ImageProcessor.Height, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <CheckBox IsChecked="{Binding KeepAspectRatio}">Сохранять пропорции</CheckBox>
+                    <HeaderedContentControl Header="Разрешение строк (мм):">
+                        <TextBox Text="{Binding ImageProcessor.LineResolution, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Разрешение точек (мм):">
+                        <TextBox Text="{Binding ImageProcessor.PointResolution, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Угол наклона (°):">
+                        <TextBox Text="{Binding ImageProcessor.Angle, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl>
+                        <HeaderedContentControl.Header>
+                            <CheckBox IsChecked="{Binding ImageProcessor.UseFreeZone}">Использовать холостые зоны (мм)</CheckBox>
+                        </HeaderedContentControl.Header>
+                        <TextBox Text="{Binding ImageProcessor.FreeZone, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Подача (мм/мин):">
+                        <TextBox Text="{Binding ImageProcessor.MaxFeed, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Минимальная подача (мм/мин):">
+                        <TextBox Text="{Binding ImageProcessor.MinFeed, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Максимальная мощность:">
+                        <TextBox Text="{Binding ImageProcessor.MaxPower, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Минимальная мощность:">
+                        <TextBox Text="{Binding ImageProcessor.MinPower, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Метод интерполяции:">
+                        <ComboBox ItemsSource="{Binding ImageProcessor.InterpolatorsSource}" SelectedValue="{Binding ImageProcessor.SelectedInterpolator}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Description}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </HeaderedContentControl>
+                    <CheckBox IsChecked="{Binding ImageProcessor.EngraveBothDirection}">Гравировка в обоих направлениях</CheckBox>
+                    <HeaderedContentControl Header="Расчетное время:">
+                        <TextBlock Text="{Binding ImageProcessor.EstimatedTime}"/>
+                    </HeaderedContentControl>                    
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Вектор">
+                <StackPanel>
+                    <Button Command="{Binding VectorProcessor.OpenSvg}">Открыть вектор</Button>
+                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" MinHeight="150" MaxHeight="400">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding Engrave}" Foreground="{Binding Brush}">Гравировать</CheckBox>
+                                    <Label>Подача:</Label>
+                                    <TextBox Text="{Binding Feed}"/>
+                                    <Label>Мощность:</Label>
+                                    <TextBox Text="{Binding Power}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
 
-                        <Button Command="{Binding OpenImage}">Открыть изображение</Button>
-                        <Button Command="{Binding Generate}">Генерировать</Button>
-                        <Button Command="{Binding Save}">Сохранить</Button>
-                        <Button Click="Button_Click" >Просмотр</Button>
+                    <Button Command="{Binding Generate}">Генерировать</Button>
+                    <Button Command="{Binding Save}">Сохранить</Button>                    
+                    <Button Click="Button_Click" >Просмотр</Button>
+                    <Button Click="Button_Click_1" >Просмотр GCode</Button>
 
-                        <HeaderedContentControl Header="Увеличение:">
-                            <ComboBox ItemsSource="{Binding MagnificationSource}" SelectedValue="{Binding Magnification}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding StringFormat='X:0.##'}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </HeaderedContentControl>
-                    </StackPanel>
-                </DockPanel>
+                    <HeaderedContentControl Header="Увеличение:">
+                        <ComboBox ItemsSource="{Binding MagnificationSource}" SelectedValue="{Binding Magnification}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding StringFormat='X:0.##'}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </HeaderedContentControl>
+
+                </StackPanel>
             </TabItem>
         </TabControl>
         <TabControl Grid.Column="1">
             <TabItem Header="Просмотр">
-                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}"/>
+                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}" 
+                                MaxIntensity="{Binding ImageProcessor.MaxPower}"
+                                MinIntensity="{Binding ImageProcessor.MinPower}"
+                                Data="{Binding VectorProcessorViewModel}"/>
                 <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
                     
                 </Canvas>-->
