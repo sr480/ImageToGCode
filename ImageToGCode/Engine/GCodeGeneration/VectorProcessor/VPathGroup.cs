@@ -89,13 +89,16 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
                 foreach (var pth in pl)
                 {
                     PointF? startPoint = null;
-                    var curPathData = pth.PathData;
+                    //var curPathData = pth.PathData;
 
-                    for (int i = 0; i < curPathData.Points.Count(); i++)
+                    var points = pth.PathPoints;
+                    int length = points.Length;
+                    var types = pth.PathTypes;
+                    for (int i = 0; i < length; i++)
                     {
 
-                        var curPthType = curPathData.Types[i];
-                        var curPoint = curPathData.Points[i];
+                        var curPthType = types[i];
+                        var curPoint = points[i];
 
                         //Rapid move to path start
                         if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))

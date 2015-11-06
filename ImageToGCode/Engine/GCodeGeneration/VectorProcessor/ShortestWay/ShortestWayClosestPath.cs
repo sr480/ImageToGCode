@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageToGCode.Engine.GCodeGeneration.VectorProcessor.ShortestWay;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -9,10 +10,10 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 {
     class ShortestWayClosestPath
     {
-        private readonly List<GraphicsPath> _paths;
+        private readonly List<GraphicPathFacade> _paths;
         public ShortestWayClosestPath(List<GraphicsPath> graphicPathCollection)
         {
-            _paths = graphicPathCollection;
+            _paths = graphicPathCollection.Select(x => new GraphicPathFacade(x)).ToList();
         }
 
         public List<GraphicsPath> PerfectGraphicPathCollection
@@ -25,27 +26,17 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 
         private List<GraphicsPath> GetResultingCollection()
         {
-            var distanceMatrix = GetDistanceMatrix();
+            var conv = new PathCollectionToDistanceMatrixConverter(_paths);
+            conv.Convert();
+            var distanceMatrix = conv.Result;
 
             var result = new List<GraphicsPath>();
             var included = new HashSet<int>();
 
 
-            double MinDistanceToZero = double.PositiveInfinity;
-            GraphicsPath ClosestToZero = null;
-            foreach (var item in _paths)
-            {
-                var dist = Math.Pow(item.PathData.Points[0].X, 2) + Math.Pow(item.PathData.Points[0].Y, 2);
 
-                if (dist < MinDistanceToZero)
-                {
-                    ClosestToZero = item;
-                    MinDistanceToZero = dist;
-                }
-            }
-
-            result.Add(ClosestToZero);
-            int currentIndex = _paths.IndexOf(ClosestToZero);
+            int currentIndex;
+            result.Add(conv.GetClosestToZeroPath(out currentIndex).GrapicsPath);
             included.Add(currentIndex);
 
 
@@ -66,7 +57,7 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
                 }
 
                 included.Add(bestIndex);
-                result.Add(_paths[bestIndex]);
+                result.Add(_paths[bestIndex].GrapicsPath);
                 currentIndex = bestIndex;
             }
 
@@ -75,47 +66,6 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
         }
 
 
-        private double[][] GetDistanceMatrix()
-        {
-            var result = new double[_paths.Count][];
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i] = new double[result.Length];
-            }
-
-            for (int i = 0; i < _paths.Count; i++)
-            {
-                for (int j = 0; j < _paths.Count; j++)
-                {
-                    result[i][j] = GetDistance(_paths[i], _paths[j]);
-                }
-            }
-            return result;
-        }
-
-        private double GetDistance(GraphicsPath first, GraphicsPath last)
-        {
-            if (first == last)
-                return 0;
-
-            var from = GetLastPoint(first);
-            var to = GetFirstPoint(last);
-
-            return Math.Sqrt(Math.Pow(from.X - to.X, 2) + Math.Pow(from.Y - to.Y, 2));
-        }
-
-        private PointF GetFirstPoint(GraphicsPath path)
-        {
-            return path.PathData.Points[0];
-        }
-
-        private PointF GetLastPoint(GraphicsPath path)
-        {
-            if (Geometry.PathTypeHelper.IsSet(path.PathData.Types.Last(), System.Drawing.Drawing2D.PathPointType.CloseSubpath))
-                return path.PathData.Points[0];
-
-            return path.PathData.Points.Last();
-        }
 
     }
 }
