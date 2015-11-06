@@ -92,9 +92,16 @@ namespace ImageToGCode
         }
         public IEnumerable<BaseGCode> Generate()
         {
+            yield return new BaseGCode("G21");
+            yield return new BaseGCode("G90");
+            yield return new BaseGCode("M3 S0");
+
             foreach (var grp in PathGroups)
                 foreach (var gc in grp.Generate())
                     yield return gc;
+
+            yield return new BaseGCode("M5");
+            yield return new BaseGCode("%");
         }
         #region IPropertyChanged
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;

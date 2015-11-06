@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ImageToGCode.Engine.GCodeGeneration
 {
-    class CoordinatMotion : RapidMotion
+    class CoordinatMotion : BaseMotion
     {
         private const string GCODE_FORMAT = "G1X{0}Y{1}F{2}S{3}";
         private const string GCODE_FORMAT_COMMENT = "G1X{0}Y{1}F{2}S{3};{4}";

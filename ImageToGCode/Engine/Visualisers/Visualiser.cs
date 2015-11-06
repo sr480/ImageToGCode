@@ -168,8 +168,6 @@ namespace ImageToGCode.Engine.Visualisers
         }
         private void VisualiseGCode(DrawingContext dc)
         {
-            const double offset = 100;
-
             if (Data == null || !(Data is IEnumerable<BaseGCode>) || ((IEnumerable<BaseGCode>)Data).Count() == 0)
                 return;
 
@@ -186,12 +184,21 @@ namespace ImageToGCode.Engine.Visualisers
                 if (firstMotion != null)
                 {
 
-                    Point start = new Point((firstMotion.Position.X) * Magnification,
-                        this.ActualHeight - (firstMotion.Position.Y) * Magnification);
-                    Point end = new Point((curMotion.Position.X) * Magnification,
-                        this.ActualHeight - (curMotion.Position.Y) * Magnification);
+                    Point start = VectorToPoint(firstMotion.Position);
+                    Point end = VectorToPoint(curMotion.Position);
 
                     dc.DrawLine(new Pen(new SolidColorBrush(GCodeToColor(curMotion)), 1.0), start, end);
+
+                    if (curMotion is RapidMotion)
+                    {
+                        var dir = (curMotion.Position - firstMotion.Position).Normalize();
+                        var v1 = dir.Rotate(15.0 / 180.0 * Math.PI) * 5;
+                        var v2 = dir.Rotate(-15.0 / 180.0 * Math.PI) * 5;
+                        v1 = curMotion.Position - v1;
+                        v2 = curMotion.Position - v2;
+                        dc.DrawLine(new Pen(new SolidColorBrush(Colors.Magenta), 1.0), end, VectorToPoint(v1));
+                        dc.DrawLine(new Pen(new SolidColorBrush(Colors.Magenta), 1.0), end, VectorToPoint(v2));
+                    }
                 }
 
                 firstMotion = curMotion;
@@ -204,11 +211,11 @@ namespace ImageToGCode.Engine.Visualisers
         {
             Pen arrowPen = new Pen(Brushes.DarkGray, 1);
             dc.DrawLine(arrowPen, CoordToPoint(0, 0), CoordToPoint(0, 100));
-            dc.DrawLine(arrowPen, CoordToPoint(3, 95), CoordToPoint(0, 100));
-            dc.DrawLine(arrowPen, CoordToPoint(-3, 95), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(2, 95), CoordToPoint(0, 100));
+            dc.DrawLine(arrowPen, CoordToPoint(-2, 95), CoordToPoint(0, 100));
             dc.DrawLine(arrowPen, CoordToPoint(0, 0), CoordToPoint(100, 0));
-            dc.DrawLine(arrowPen, CoordToPoint(95, 3), CoordToPoint(100, 0));
-            dc.DrawLine(arrowPen, CoordToPoint(95, -3), CoordToPoint(100, 0));
+            dc.DrawLine(arrowPen, CoordToPoint(95, 2), CoordToPoint(100, 0));
+            dc.DrawLine(arrowPen, CoordToPoint(95, -2), CoordToPoint(100, 0));
 
             dc.DrawEllipse(Brushes.Red, new Pen(Brushes.DarkGray, 1), CoordToPoint(0, 0), 3, 3);
         }
@@ -248,6 +255,10 @@ namespace ImageToGCode.Engine.Visualisers
             }
 
             return Colors.HotPink;
+        }
+        private Point VectorToPoint(Geometry.Vector v)
+        {
+            return new Point(v.X * Magnification, ActualHeight - v.Y * Magnification);
         }
         private Point CoordToPoint(double x, double y)
         {

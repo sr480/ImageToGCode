@@ -337,8 +337,15 @@ namespace ImageToGCode
             var gcGen = new Engine.GCodeGeneration.ImageProcessor.GCodeGenerator(strokeGenerator.Strokes, (int)MinFeed, (int)MaxFeed, MaxPower, MinPower);
             var gcode = gcGen.GenerateCode();
 
+            yield return new BaseGCode("G21");
+            yield return new BaseGCode("G90");
+            yield return new BaseGCode("M3 S0");
+            
             foreach (var str in gcode)
                 yield return str;
+            
+            yield return new BaseGCode("M5");
+            yield return new BaseGCode("%");
 
             yield return new BaseGCode("(----ImageGenerator----)");
             yield return new BaseGCode(string.Format("(FileName: {0})", _PathToFile));

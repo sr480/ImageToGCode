@@ -77,20 +77,25 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 
         public IEnumerable<BaseGCode> Generate()
         {
-            PathList = (new ShortestWayClosestPath(PathList)).PerfectGraphicPathCollection;
-            
             if (Engrave)
             {
-                yield return new BaseGCode(string.Format("(Path: F: {0} mm/min, P: {1})", Feed, Power));
+                var pl = PathList;
+                if (Optimize)
+                    pl = (new ShortestWayClosestPath(PathList)).PerfectGraphicPathCollection;
 
-                foreach (var pth in PathList)
+                yield return new BaseGCode(string.Format("(Path: F: {0} mm/min, P: {1})", Feed, Power));
+                yield return new BaseGCode(string.Format("(Path group color: R{0}, G{1}, B{2})", PathColor.R, PathColor.G, PathColor.B));
+
+                foreach (var pth in pl)
                 {
                     PointF? startPoint = null;
+                    var curPathData = pth.PathData;
 
-                    for (int i = 0; i < pth.PathData.Points.Count(); i++)
+                    for (int i = 0; i < curPathData.Points.Count(); i++)
                     {
-                        var curPthType = pth.PathData.Types[i];
-                        var curPoint = pth.PathData.Points[i];
+
+                        var curPthType = curPathData.Types[i];
+                        var curPoint = curPathData.Points[i];
 
                         //Rapid move to path start
                         if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))

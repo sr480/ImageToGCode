@@ -22,7 +22,7 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
                 return GetResultingCollection();
             }
         }
-        
+
         private List<GraphicsPath> GetResultingCollection()
         {
             var distanceMatrix = GetDistanceMatrix();
@@ -30,31 +30,50 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
             var result = new List<GraphicsPath>();
             var included = new HashSet<int>();
 
-            result.Add(_paths.First());
-            included.Add(0);
 
-            for (int i = 1; i < _paths.Count; i++)
+            double MinDistanceToZero = double.PositiveInfinity;
+            GraphicsPath ClosestToZero = null;
+            foreach (var item in _paths)
+            {
+                var dist = Math.Pow(item.PathData.Points[0].X, 2) + Math.Pow(item.PathData.Points[0].Y, 2);
+
+                if (dist < MinDistanceToZero)
+                {
+                    ClosestToZero = item;
+                    MinDistanceToZero = dist;
+                }
+            }
+
+            result.Add(ClosestToZero);
+            int currentIndex = _paths.IndexOf(ClosestToZero);
+            included.Add(currentIndex);
+
+
+            while (included.Count != _paths.Count)
             {
                 int bestIndex = -1;
-                double bestDistance = double.PositiveInfinity;    
-                
-                for (int j = 1; j < _paths.Count; j++)
+                double bestDistance = double.PositiveInfinity;
+
+                for (int i = 0; i < _paths.Count; i++)
                 {
-                    if (included.Contains(j))
+                    if (included.Contains(i) || i == currentIndex)
                         continue;
-                    if(bestDistance > distanceMatrix[i][j])
+                    if (bestDistance > distanceMatrix[currentIndex][i])
                     {
-                        bestIndex = j;
-                        bestDistance = distanceMatrix[i][j];
+                        bestIndex = i;
+                        bestDistance = distanceMatrix[currentIndex][i];
                     }
                 }
 
                 included.Add(bestIndex);
                 result.Add(_paths[bestIndex]);
+                currentIndex = bestIndex;
             }
+
 
             return result;
         }
+
 
         private double[][] GetDistanceMatrix()
         {
@@ -97,6 +116,6 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 
             return path.PathData.Points.Last();
         }
-        
+
     }
 }

@@ -23,24 +23,13 @@ namespace ImageToGCode.Engine.GCodeGeneration.ImageProcessor
         }
 
         
-        public List<BaseGCode> GenerateCode()
+        public IEnumerable<BaseGCode> GenerateCode()
         {
-            var result = new List<BaseGCode>();
             MotionFactoryImage mf = new MotionFactoryImage(_MinFeed, _MaxFeed, _MaxPower, _MinPower);
-                        
-            result.Add(new BaseGCode("G21"));
-            result.Add(new BaseGCode("G90"));
-            result.Add(new BaseGCode("M3 S0"));
-            result.Add(new BaseGCode(string.Format("F{0}", _MaxFeed)));
 
-            foreach(var stroke in _Strokes)
-            {
-                result.AddRange(mf.CreateMotion(stroke));
-            }
-
-            result.Add(new BaseGCode("M5"));
-            result.Add(new BaseGCode("%"));
-            return result;
+            foreach (var stroke in _Strokes)
+                foreach (var item in mf.CreateMotion(stroke))
+                    yield return item;
         }
     }
 }
