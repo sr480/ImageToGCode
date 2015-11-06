@@ -16,14 +16,16 @@ namespace ImageToGCode
     class MainViewModel : INotifyPropertyChanged
     {
         #region Fields
+        private TimeSpan _EstimatedTime;
+        private double _RapidMotionDistance;
+        private double _FeedMotionDistance;
         private double _Magnification = 1.0;
-        private ObservableCollection<Engine.GCodeGeneration.BaseGCode> _GCode;
+        private ObservableCollection<BaseGCode> _GCode;
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
         #endregion
         public ImageProcessorViewModel ImageProcessor { get; private set; }
         public VectorProcessorViewModel VectorProcessor { get; private set; }
 
-        #region Properties: Input parameters
         public double Magnification
         {
             get
@@ -39,28 +41,72 @@ namespace ImageToGCode
             }
         }
         public List<double> MagnificationSource { get; private set; }
-        #endregion
+
+        public double FeedMotionDistance
+        {
+            get
+            {
+                return _FeedMotionDistance;
+            }
+            set
+            {
+                if (_FeedMotionDistance == value)
+                    return;
+                _FeedMotionDistance = value;
+                RaisePropertyChanged("FeedMotionDistance");
+            }
+        }
+        public double RapidMotionDistance
+        {
+            get
+            {
+                return _RapidMotionDistance;
+            }
+            set
+            {
+                if (_RapidMotionDistance == value)
+                    return;
+                _RapidMotionDistance = value;
+                RaisePropertyChanged("RapidMotionDistance");
+            }
+        }
+        public TimeSpan EstimatedTime
+        {
+            get
+            {
+                return _EstimatedTime;
+            }
+            set
+            {
+                if (_EstimatedTime == value)
+                    return;
+                _EstimatedTime = value;
+                RaisePropertyChanged("EstimatedTime");
+            }
+        }
 
         #region Commands
         public Command Save { get; private set; }
         public Command Generate { get; private set; }
+        public Command CountStats { get; private set; }
         #endregion
 
-        public ObservableCollection<Engine.GCodeGeneration.BaseGCode> GCode
+        public ObservableCollection<BaseGCode> GCode
         {
             get { return _GCode; }
         }
 
         public MainViewModel()
         {
-            _GCode = new ObservableCollection<Engine.GCodeGeneration.BaseGCode>();
+            _GCode = new ObservableCollection<BaseGCode>();
             _GCode.CollectionChanged += GCode_CollectionChanged;
-            
+
             ImageProcessor = new ImageProcessorViewModel(_GCode);
             VectorProcessor = new VectorProcessorViewModel();
-            
+
             Save = new Command((x) => SaveGCodeAction(), (x) => GCode.Count > 0);
             Generate = new Command((x) => GenerateAction(), (x) => true);
+            CountStats = new Command((x) => CountStatsAction(), (x) => true);
 
             MagnificationSource = new List<double>();
             MagnificationSource.Add(0.5);
@@ -101,6 +147,14 @@ namespace ImageToGCode
             _GCode.Clear();
             foreach (var gc in VectorProcessor.Generate())
                 _GCode.Add(gc);
+        }
+        private void CountStatsAction()
+        {
+            var gcc = new GCodeTrajectoryCounter(_GCode);
+            gcc.Count();
+            RapidMotionDistance = Math.Round(gcc.Rapid, 2);
+            FeedMotionDistance = Math.Round(gcc.Feed, 2);
+            EstimatedTime = gcc.EstimatedTime;
         }
         #endregion
 

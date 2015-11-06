@@ -9,6 +9,10 @@
             <ColumnDefinition Width="250"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="140"/>
+        </Grid.RowDefinitions>
         <TabControl>
             <TabItem Header="Изображения">
                 <StackPanel>
@@ -58,57 +62,70 @@
                         </ComboBox>
                     </HeaderedContentControl>
                     <CheckBox IsChecked="{Binding ImageProcessor.EngraveBothDirection}">Гравировка в обоих направлениях</CheckBox>
-                    <HeaderedContentControl Header="Расчетное время:">
-                        <TextBlock Text="{Binding ImageProcessor.EstimatedTime}"/>
-                    </HeaderedContentControl>                    
                 </StackPanel>
             </TabItem>
             <TabItem Header="Вектор">
                 <StackPanel>
                     <Button Command="{Binding VectorProcessor.OpenSvg}">Открыть вектор</Button>
-                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" SelectedValue="{Binding VectorProcessor.SelectedGroup}" MinHeight="150" MaxHeight="400">
+                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" SelectedValue="{Binding VectorProcessor.SelectedGroup}" MinHeight="150" MaxHeight="400"
+                              HorizontalContentAlignment="Stretch">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel>
-                                    <CheckBox IsChecked="{Binding Engrave}" Foreground="{Binding Brush}">Гравировать</CheckBox>
-                                    <Label>Подача:</Label>
-                                    <TextBox Text="{Binding Feed}"/>
-                                    <Label>Мощность:</Label>
-                                    <TextBox Text="{Binding Power}"/>
-                                </StackPanel>
+                                <Border BorderBrush="{Binding Brush}" BorderThickness="2" HorizontalAlignment="Stretch">
+                                    <StackPanel>
+                                        <CheckBox IsChecked="{Binding Engrave}" Foreground="{Binding Brush}">Гравировать</CheckBox>
+                                        <HeaderedContentControl Header="Подача:" HorizontalContentAlignment="Right">
+                                            <TextBox Text="{Binding Feed}"/>
+                                        </HeaderedContentControl>
+                                        <HeaderedContentControl Header="Мощность:" HorizontalContentAlignment="Right">
+                                            <TextBox Text="{Binding Power}"/>
+                                        </HeaderedContentControl>
+                                        <CheckBox IsChecked="{Binding Optimize}" Foreground="{Binding Brush}">Оптимизировать</CheckBox>
+                                    </StackPanel>
+                                </Border>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
                     <Button Command="{Binding VectorProcessor.MoveUp}">/\ Переместить вверх</Button>
                     <Button Command="{Binding VectorProcessor.MoveDown}">\/ Переместить вниз</Button>
-
                     <Button Command="{Binding Generate}">Генерировать</Button>
-                    <Button Command="{Binding Save}">Сохранить</Button>                    
-                    <Button Click="Button_Click" >Просмотр</Button>
-                    <Button Click="Button_Click_1" >Просмотр GCode</Button>
-
-                    <HeaderedContentControl Header="Увеличение:">
-                        <ComboBox ItemsSource="{Binding MagnificationSource}" SelectedValue="{Binding Magnification}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding StringFormat='X:0.##'}"/>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Статистика">
+                <StackPanel>
+                    <Button Command="{Binding CountStats}">Расчитать</Button>
+                    <HeaderedContentControl Header="Холостые перемещения (мм):">
+                        <TextBlock Text="{Binding RapidMotionDistance}"/>
                     </HeaderedContentControl>
-
+                    <HeaderedContentControl Header="Координатные перемещения (мм):">
+                        <TextBlock Text="{Binding FeedMotionDistance}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Расчетное время:">
+                        <TextBlock Text="{Binding EstimatedTime}"/>
+                    </HeaderedContentControl>
                 </StackPanel>
             </TabItem>
         </TabControl>
-        <TabControl Grid.Column="1">
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="4">
+            <HeaderedContentControl Header="Увеличение:">
+                <ComboBox ItemsSource="{Binding MagnificationSource}" SelectedValue="{Binding Magnification}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StringFormat='X:0.##'}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </HeaderedContentControl>            
+            <Button Command="{Binding Save}">Сохранить</Button>
+            <Button Click="Button_Click" >Просмотр вектор</Button>
+            <Button Click="Button_Click_1" >Просмотр GCode</Button>
+        </StackPanel>
+        <TabControl Grid.Column="1" Grid.RowSpan="2">
             <TabItem Header="Просмотр">
                 <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}" 
                                 MaxIntensity="{Binding ImageProcessor.MaxPower}"
                                 MinIntensity="{Binding ImageProcessor.MinPower}"
-                                Data="{Binding VectorProcessorViewModel}"/>
-                <!--<Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="Plot">
-                    
-                </Canvas>-->
+                                Data="{Binding VectorProcessorViewModel}"/>                
             </TabItem>
             <TabItem Header="GCode">
                 <ListView ItemsSource="{Binding GCode}">
