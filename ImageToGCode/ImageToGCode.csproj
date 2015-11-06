@@ -60,6 +60,8 @@
     <Compile Include="Engine\GCodeGeneration\BaseMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\GCodeTrajectoryCounter.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\GraphicPathFacade.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\PathCollectionToDistanceMatrixConverter.cs" />
     <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\ShortestWayClosestPath.cs" />
     <Compile Include="Engine\GCodeGeneration\VectorProcessor\VPathGroupSVGGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\ImageProcessor\GCodeGenerator.cs" />
