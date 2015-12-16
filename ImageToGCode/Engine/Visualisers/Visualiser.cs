@@ -225,34 +225,11 @@ namespace ImageToGCode.Engine.Visualisers
             if (motion is CoordinatMotion)
             {
                 var cm = (CoordinatMotion)motion;
-                if (cm.Intensity == 0.0)
-                    return Colors.PaleGreen;
-
-
-                byte r = (byte)(255 - (255 - cm.Color.R) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
-                byte g = (byte)(255 - (255 - cm.Color.G) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
-                byte b = (byte)(255 - (255 - cm.Color.B) * (cm.Intensity - MinIntensity) / (MaxIntensity - MinIntensity));
-                return Color.FromRgb(r, g, b);
+                return Color.FromRgb(cm.Color.R, cm.Color.G, cm.Color.B);
             }
 
             if (motion is RapidMotion)
                 return Colors.HotPink;
-
-            return Colors.HotPink;
-        }
-
-        private Color StrokeToColor(FreeMotionStroke stroke)
-        {
-            if (stroke is IdleStroke)
-                return Colors.BlueViolet;
-            if (stroke is Stroke)
-            {
-                if (((Stroke)stroke).Intensity == 0.0)
-                    return Colors.PaleGreen;
-
-                byte gcIntence = (byte)(255 - 255 * ((Stroke)stroke).Intensity);
-                return Color.FromRgb((byte)gcIntence, (byte)gcIntence, (byte)gcIntence);
-            }
 
             return Colors.HotPink;
         }

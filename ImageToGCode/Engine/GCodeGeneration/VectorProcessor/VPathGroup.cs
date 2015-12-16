@@ -11,17 +11,17 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 {
     class VPathGroup : INotifyPropertyChanged
     {
-        private int _Feed = 400;
-        private int _Power = 40;
+        private int _Feed = 600;
+        private int _Power = 50;
         private bool _Engrave = true;
         public Color PathColor { get; private set; }
         public bool Optimize { get; set; }
-        public System.Windows.Media.Brush Brush 
-        { 
-            get 
+        public System.Windows.Media.Brush Brush
+        {
+            get
             {
                 return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(PathColor.A, PathColor.R, PathColor.G, PathColor.B));
-            } 
+            }
         }
         public int Power
         {
@@ -64,13 +64,14 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
         }
         public List<GraphicsPath> PathList { get; private set; }
 
-        public VPathGroup(Color pathColor) 
+        public VPathGroup(Color pathColor)
         {
             PathColor = pathColor;
             PathList = new List<GraphicsPath>();
         }
 
-        public VPathGroup(Color pathColor, IEnumerable<GraphicsPath> paths) : this(pathColor)
+        public VPathGroup(Color pathColor, IEnumerable<GraphicsPath> paths)
+            : this(pathColor)
         {
             PathList.AddRange(paths);
         }
@@ -104,20 +105,28 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
                         if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))
                         {
                             yield return new RapidMotion(new Geometry.Vector(curPoint));
-                            startPoint = curPoint;                            
+                            startPoint = curPoint;
                         }
-                        else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Line) ||
-                            Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Bezier))
+                        else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Line))
                         {
                             //Move to point on path
                             yield return new CoordinatMotion(new Geometry.Vector(curPoint), Power, Feed, PathColor);
-                            
+
                             //Close path
                             if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.CloseSubpath))
                             {
                                 yield return new CoordinatMotion(new Geometry.Vector(startPoint.Value), Power, Feed, PathColor);
                             }
                         }
+                        //else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Bezier))
+                        //{
+                        //    var result = Geometry.GraphicsPathToGCode.Generate(
+                        //        curPathData.Points[i - 1], 
+                        //        curPathData.Points[i], 
+                        //        curPathData.Points[i + 1], 
+                        //        curPathData.Points[i + 2]);
+                        //    i += 2;
+                        //}
                     }
                 }
             }
@@ -139,6 +148,5 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
         }
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
-
     }
 }

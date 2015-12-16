@@ -23,20 +23,18 @@ namespace ImageToGCode.Engine.GCodeGeneration.ImageProcessor
 
         public IEnumerable<BaseGCode> CreateMotion(FreeMotionStroke stroke)
         {
-            var result = new List<BaseGCode>(1);
             if (stroke is IdleStroke)
-                result.Add(new CoordinatMotion(stroke.DestinationPoint, 0, _MaxFeed) { Comment = "Idle motion" });
+                yield return new CoordinatMotion(stroke.DestinationPoint, 0, _MaxFeed, System.Drawing.Color.Aquamarine) { Comment = "Idle motion" };
             if (stroke is Stroke)
-                result.Add(new CoordinatMotion(stroke.DestinationPoint,
+            {
+                int colorIntencity = (int)(255 * ((Stroke)stroke).Intensity);
+                yield return new CoordinatMotion(stroke.DestinationPoint,
                     (int)Math.Round(_MinPower + (_MaxPower - _MinPower) * ((Stroke)stroke).Intensity),
-                    (int)Math.Round(_MinFeed + (_MaxFeed - _MinFeed) * (1 - ((Stroke)stroke).Intensity))));
-
+                    (int)Math.Round(_MinFeed + (_MaxFeed - _MinFeed) * (1 - ((Stroke)stroke).Intensity)),
+                    System.Drawing.Color.FromArgb(colorIntencity, colorIntencity, colorIntencity));
+            }
             if (stroke is FreeMotionStroke)
-                result.Add(new RapidMotion(stroke.DestinationPoint) { Comment = "New line move" });
-
-            if (result.Count == 0)
-                throw new Exception("Unknown stroke type");
-            return result;
-        }   
+                yield return new RapidMotion(stroke.DestinationPoint) { Comment = "New line move" };
+        }
     }
 }
