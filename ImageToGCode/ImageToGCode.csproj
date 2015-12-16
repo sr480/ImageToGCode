@@ -68,7 +68,7 @@
     </Compile>
     <Compile Include="Engine\GCodeGeneration\VectorProcessor\SvgToGCodeRenderer.cs" />
     <Compile Include="Engine\GCodeGeneration\ImageProcessor\IdleStroke.cs" />
-    <Compile Include="Engine\GCodeGeneration\ImageProcessor\MotionFactory.cs" />
+    <Compile Include="Engine\GCodeGeneration\ImageProcessor\MotionFactoryImage.cs" />
     <Compile Include="Engine\GCodeGeneration\ImageProcessor\FreeMotionStroke.cs" />
     <Compile Include="Engine\GCodeGeneration\RapidMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\ImageProcessor\Stroke.cs" />
@@ -76,6 +76,7 @@
     <Compile Include="Engine\GCodeGeneration\VectorProcessor\VPathGroup.cs" />
     <Compile Include="Engine\Geometry\Bezier.cs" />
     <Compile Include="Engine\Geometry\FactorVectorFactory.cs" />
+    <Compile Include="Engine\Geometry\GraphicPathToGCode.cs" />
     <Compile Include="Engine\Geometry\MatrixHelpers.cs" />
     <Compile Include="Engine\Geometry\PathTypeHelper.cs" />
     <Compile Include="Engine\Interpolators\BilinearInterpolator.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="ParameterHelpers\FeedToAngle.cs" />
     <Compile Include="Tools\Command.cs" />
     <Compile Include="VectorProcessorViewModel.cs" />
+    <Compile Include="VectorTransformationControlViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

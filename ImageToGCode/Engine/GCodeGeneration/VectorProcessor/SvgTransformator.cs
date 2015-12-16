@@ -28,7 +28,7 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
         public GraphicsPath TransformPath(GraphicsPath path)
         {
             var p = (GraphicsPath)path.Clone();            
-            p.Flatten(_Transform, 0.5f);
+            p.Flatten(_Transform, 0.1f);
             return p;
         }
         public void RotateTransform(float angle)

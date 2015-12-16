@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -54,7 +55,7 @@ namespace ImageToGCode
                 var doc = Svg.SvgDocument.Open(openFileDialog.FileName);
 
                 var gcg = new VPathGroupSVGGenerator(doc);
-                foreach (var vPath in gcg.GenerateVPathGroups())
+                foreach (var vPath in gcg.GenerateVPathGroups().OrderBy(g => g.PathColor.GetHue()))
                 {
                     PathGroups.Add(vPath);
                 }
@@ -66,6 +67,23 @@ namespace ImageToGCode
             }
         }
 
+        private RectangleF GetBoundingBox()
+        {
+            double minX = double.PositiveInfinity, minY = double.PositiveInfinity;
+            double maxX = double.NegativeInfinity, maxY = double.NegativeInfinity;
+
+            foreach (var pg in PathGroups)
+                foreach (var path in pg.PathList)
+                {
+                    var rect = path.GetBounds();
+                    if (rect.Left < minX) minX = rect.Left;
+                    if (rect.Bottom < minY) minY = rect.Bottom;
+                    if (rect.Top > maxY) maxY = rect.Top;
+                    if (rect.Right > maxX) maxX = rect.Right;
+                }
+
+            return new RectangleF((float)minX, (float)minY, (float)(maxX - minX), (float)(maxY - minY));
+        }
         private void MoveUpAction()
         {
             if (SelectedGroup == null)
