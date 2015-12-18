@@ -15,33 +15,30 @@ namespace ImageToGCode
 {
     class VectorProcessorViewModel : INotifyPropertyChanged
     {
-        private VPathGroup _SelectedGroup;
-        public ObservableCollection<Engine.GCodeGeneration.VectorProcessor.VPathGroup> PathGroups { get; private set; }
+        private VFile _SelectedFile;
+        public ObservableCollection<Engine.GCodeGeneration.VectorProcessor.VFile> Files { get; private set; }
         public Command OpenSvg { get; private set; }
-        public Command MoveUp { get; private set; }
-        public Command MoveDown { get; private set; }
-        public VPathGroup SelectedGroup
+        public Command RemoveSvg { get; private set; }
+        public VFile SelectedFile
         {
             get
             {
-                return _SelectedGroup;
+                return _SelectedFile;
             }
             set
             {
-                if (_SelectedGroup == value)
+                if (_SelectedFile == value)
                     return;
-                _SelectedGroup = value;
-                RaisePropertyChanged("SelectedGroup");
-                MoveUp.RaiseCanExecuteChanged();
-                MoveDown.RaiseCanExecuteChanged();
+                _SelectedFile = value;
+                RaisePropertyChanged("SelectedFile");
+                RemoveSvg.RaiseCanExecuteChanged();
             }
         }
         public VectorProcessorViewModel()
         {
-            PathGroups = new ObservableCollection<Engine.GCodeGeneration.VectorProcessor.VPathGroup>();
+            Files = new ObservableCollection<Engine.GCodeGeneration.VectorProcessor.VFile>();
             OpenSvg = new Command((x) => OpenSvgAction(), (x) => true);
-            MoveUp = new Command((x) => MoveUpAction(), (x) => SelectedGroup != null);
-            MoveDown = new Command((x) => MoveDownAction(), (x) => SelectedGroup != null);
+            RemoveSvg = new Command((x) => RemoveSvgAction(), (x) => SelectedFile != null);
         }
 
         private void OpenSvgAction()
@@ -50,75 +47,33 @@ namespace ImageToGCode
             openFileDialog.Filter = "SVG file (*.svg)|*.svg";
             if (openFileDialog.ShowDialog() == true)
             {
-                //try { 
-                PathGroups.Clear();
-                var doc = Svg.SvgDocument.Open(openFileDialog.FileName);
-
-                var gcg = new VPathGroupSVGGenerator(doc);
-                foreach (var vPath in gcg.GenerateVPathGroups().OrderBy(g => g.PathColor.GetHue()))
+                var file = new VFile(openFileDialog.FileName);
+                if(Files.Count > 0)
                 {
-                    PathGroups.Add(vPath);
+                    var prevBounding = Files.Last().Boundings;
+                    file.SetTransform(prevBounding.Right, 0);
                 }
-                //}
-                //catch (Exception e)
-                //{
-                //    System.Windows.MessageBox.Show("Ошибка открытия файла", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                //}
+                Files.Add(file);
             }
         }
-
-        private RectangleF GetBoundingBox()
+        private void RemoveSvgAction()
         {
-            double minX = double.PositiveInfinity, minY = double.PositiveInfinity;
-            double maxX = double.NegativeInfinity, maxY = double.NegativeInfinity;
-
-            foreach (var pg in PathGroups)
-                foreach (var path in pg.PathList)
-                {
-                    var rect = path.GetBounds();
-                    if (rect.Left < minX) minX = rect.Left;
-                    if (rect.Bottom < minY) minY = rect.Bottom;
-                    if (rect.Top > maxY) maxY = rect.Top;
-                    if (rect.Right > maxX) maxX = rect.Right;
-                }
-
-            return new RectangleF((float)minX, (float)minY, (float)(maxX - minX), (float)(maxY - minY));
+            Files.Remove(SelectedFile);
         }
-        private void MoveUpAction()
-        {
-            if (SelectedGroup == null)
-                throw new Exception("SelectedGroup is null");
 
-            //var groupToMove = SelectedGroup;
-            var idx = PathGroups.IndexOf(SelectedGroup);
-            if (idx <= 0)
-                return;
-
-            PathGroups.Move(idx, idx - 1);
-        }
-        private void MoveDownAction()
-        {
-            if (SelectedGroup == null)
-                throw new Exception("SelectedGroup is null");
-
-            //var groupToMove = SelectedGroup;
-            var idx = PathGroups.IndexOf(SelectedGroup);
-            if (idx >= PathGroups.Count - 1)
-                return;
-
-            PathGroups.Move(idx, idx + 1);
-        }
         public IEnumerable<BaseGCode> Generate()
         {
             yield return new BaseGCode("G21");
             yield return new BaseGCode("G90");
-            yield return new BaseGCode("M3 S0");
-
-            foreach (var grp in PathGroups)
-                foreach (var gc in grp.Generate())
-                    yield return gc;
-
-            yield return new BaseGCode("M5");
+            
+            foreach (var fl in Files)
+            {
+                yield return new BaseGCode("M3 S0");
+                foreach (var grp in fl.PathGroups)
+                    foreach (var gc in grp.Generate())
+                        yield return gc;
+                yield return new BaseGCode("M5");
+            }
             yield return new BaseGCode("%");
         }
         #region IPropertyChanged

@@ -14,6 +14,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ImageToGCode.Engine.GCodeGeneration;
 using ImageToGCode.Engine.GCodeGeneration.ImageProcessor;
+using ImageToGCode.Engine.GCodeGeneration.VectorProcessor;
+using System.Runtime.InteropServices;
 
 namespace ImageToGCode.Engine.Visualisers
 {
@@ -48,26 +50,15 @@ namespace ImageToGCode.Engine.Visualisers
     /// </summary>
     class Visualiser : Canvas
     {
-        public int MinIntensity
-        {
-            get { return (int)GetValue(MinIntensityProperty); }
-            set { SetValue(MinIntensityProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for MinIntensity.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty MinIntensityProperty =
-            DependencyProperty.Register("MinIntensity", typeof(int), typeof(Visualiser), new UIPropertyMetadata(0));
-        public int MaxIntensity
-        {
-            get { return (int)GetValue(MaxIntensityProperty); }
-            set { SetValue(MaxIntensityProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for MaxIntensity.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty MaxIntensityProperty =
-            DependencyProperty.Register("MaxIntensity", typeof(int), typeof(Visualiser), new UIPropertyMetadata(0));
-
-
+        public static readonly DependencyProperty SelectedFileProperty =
+            DependencyProperty.Register("SelectedFile", typeof(VFile), typeof(Visualiser),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, null, null));
+        public static readonly DependencyProperty MagnificationProperty =
+            DependencyProperty.Register("Magnification", typeof(double), typeof(Visualiser),
+            new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.AffectsRender, null, null));
+        public static readonly DependencyProperty DataProperty =
+            DependencyProperty.Register("Data", typeof(object), typeof(Visualiser),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, null, null));
 
         public object Data
         {
@@ -75,94 +66,233 @@ namespace ImageToGCode.Engine.Visualisers
             set { SetValue(DataProperty, value); }
         }
 
-
+        public VFile SelectedFile
+        {
+            get { return (VFile)GetValue(SelectedFileProperty); }
+            set { SetValue(SelectedFileProperty, value); }
+        }
         public double Magnification
         {
             get { return (double)GetValue(MagnificationProperty); }
             set { SetValue(MagnificationProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Magnification.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty MagnificationProperty =
-            DependencyProperty.Register("Magnification", typeof(double), typeof(Visualiser),
-            new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.AffectsRender, null, null));
-
-
-
-        // Using a DependencyProperty as the backing store for Data.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty DataProperty =
-            DependencyProperty.Register("Data", typeof(object), typeof(Visualiser),
-            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, null, null));
-
+        private Matrix _Transformation;
+        private Dictionary<VFile, VFileVisual> _items;
+        private VisualGrid _grid;
         static Visualiser()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(Visualiser), new FrameworkPropertyMetadata(typeof(Visualiser)));
         }
         public Visualiser()
         {
+            Focusable = true;
+            MouseWheel += Visualiser_MouseWheel;
+            MouseDown += Visualiser_MouseDown;
+            MouseMove += Visualiser_MouseMove;
+            MouseUp += Visualiser_MouseUp;
+            
+            _Transformation = new Matrix(1, 0, 0, -1, 0, 0);
+            this.RenderTransform = new MatrixTransform(_Transformation);
+            _items = new Dictionary<VFile, VFileVisual>();
+            _grid = new VisualGrid();
+            _grid.Render();
+        }
 
-        }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            base.OnPropertyChanged(e);
-        }
+        //protected override Visual GetVisualChild(int index)
+        //{
+        //    if (index < 0 || index >= _items.Count)
+        //        throw new ArgumentOutOfRangeException();
+
+        //    return _items.Values.ElementAt(index);
+        //}
+        //protected override int VisualChildrenCount
+        //{
+        //    get
+        //    {
+        //        return _items.Count;
+        //    }
+        //}
         protected override void OnRender(DrawingContext dc)
         {
+            base.OnRender(dc);
             if (Data is IEnumerable<BaseGCode>)
                 VisualiseGCode(dc);
             if (Data is VectorProcessorViewModel)
+            {
+                dc.DrawDrawing(_grid.Drawing);
                 VisualiseVector(dc);
+                foreach (var visual in _items.Values)
+                    dc.DrawDrawing(visual.Drawing);                
+            }
+        }
+
+        void Visualiser_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            _startDragPoint = null;
+        }
+        int mouseMoveCount = 0;
+        void Visualiser_MouseMove(object sender, MouseEventArgs e)
+        {
+            mouseMoveCount++;
+            if (mouseMoveCount % 2 != 0)
+                return;
+            if (_startDragPoint != null & SelectedFile != null)
+            {
+
+                var newPoint = e.GetPosition(this);
+                var selectedFile = ((VectorProcessorViewModel)Data).SelectedFile;
+
+                var tsPoint = (_startDragPoint.Value);
+                var tePoint = (newPoint);
+                var dX = tsPoint.X - tePoint.X;
+                var dY = tsPoint.Y - tePoint.Y;
+
+
+                selectedFile.SetTransform(-(float)dX, -(float)dY);
+                var visual = _items[selectedFile];
+
+                var mt = ((MatrixTransform)visual.Drawing.Transform).Matrix;
+                mt.Translate(-dX, -dY);
+                ((MatrixTransform)visual.Drawing.Transform).Matrix = mt;
+                //visual.Render();
+                _startDragPoint = newPoint;
+                InvalidateVisual();
+            }
+            if (_startDragPoint != null & SelectedFile == null)
+            {
+                var newPoint = e.GetPosition(this);
+
+                var tsPoint = (_startDragPoint.Value);
+                var tePoint = (newPoint);
+                var dX = tsPoint.X - tePoint.X;
+                var dY = tsPoint.Y - tePoint.Y;
+
+                _Transformation.Translate(-dX, dY);
+                this.RenderTransform = new MatrixTransform(_Transformation);
+                _startDragPoint = newPoint;
+            }
+        }
+        Point? _clickPoint;
+        Point? _startDragPoint;
+        void Visualiser_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!(Data is VectorProcessorViewModel))
+                return;
+            var data = ((VectorProcessorViewModel)Data);            
+
+            var curMousePosition = e.GetPosition(this);
+            _clickPoint = curMousePosition;
+
+            bool isFileFound = false;
+            foreach (var file in data.Files)
+            {
+                if (file.Boundings.Contains(new System.Drawing.PointF((float)curMousePosition.X, (float)curMousePosition.Y)))
+                {
+                    data.SelectedFile = file;
+                    isFileFound = true;
+                    break;
+                }
+            }
+            if (!isFileFound)
+                data.SelectedFile = null;
+
+            _startDragPoint = curMousePosition;
+        }
+
+        private void Visualiser_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            Magnification = Magnification + e.Delta * 0.001;
+        }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == MagnificationProperty)
+            {
+                _Transformation.M11 = (double)e.NewValue;
+                _Transformation.M22 = -(double)e.NewValue;
+                UpdateTransformations();
+            }
+            if (e.Property == ActualHeightProperty)
+            {
+                _Transformation.OffsetY = (double)e.NewValue;
+                UpdateTransformations();
+            }
+            if (e.Property == DataProperty)
+            {
+                if (e.NewValue is VectorProcessorViewModel)
+                    ((VectorProcessorViewModel)e.NewValue).Files.CollectionChanged += Files_CollectionChanged;
+
+                if (e.OldValue is VectorProcessorViewModel)
+                    ((VectorProcessorViewModel)e.OldValue).Files.CollectionChanged -= Files_CollectionChanged;
+            }
+        }
+
+        void Files_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (VFile file in e.NewItems)
+                {
+                    if (!_items.ContainsKey(file))
+                    {
+                        var visual = GetVisualForFile(file);
+                        _items.Add(file, visual);
+                        visual.UpdateNeeded += FileVisualNeedsUpdate;
+                    }
+                }
+            }
+            if (e.OldItems != null)
+            {
+                foreach (VFile file in e.OldItems)
+                {
+                    if (_items.ContainsKey(file))
+                    {
+                        var visual = _items[file];
+                        ((VFileVisual)visual).UpdateNeeded -= FileVisualNeedsUpdate;
+                        _items.Remove(file);
+                    }
+                }
+            }
+            InvalidateVisual();
+        }
+
+        void FileVisualNeedsUpdate(object sender, EventArgs e)
+        {
+            InvalidateVisual();
+        }
+
+        private void UpdateFileVisual(VFile file)
+        {
+            var visual = _items[file];
+            if (visual is VFileVisual)
+                ((VFileVisual)visual).Render();
+        }
+        private void UpdateTransformations()
+        {
+            this.RenderTransform = new MatrixTransform(_Transformation);
+        }
+
+        private VFileVisual GetVisualForFile(VFile file)
+        {
+            return new VFileVisual(file);
         }
         private void VisualiseVector(DrawingContext dc)
         {
-            if (Data == null || !(Data is VectorProcessorViewModel) || ((VectorProcessorViewModel)Data).PathGroups.Count == 0)
+            if (Data == null || !(Data is VectorProcessorViewModel) || ((VectorProcessorViewModel)Data).Files.Count == 0)
                 return;
             var data = (VectorProcessorViewModel)Data;
 
-            foreach (var vPathGrp in data.PathGroups)
+            if (_clickPoint != null)
+                dc.DrawEllipse(Brushes.Red, new Pen(Brushes.Red, 1), _clickPoint.Value, 3, 3);
+            if (_startDragPoint != null)
+                dc.DrawEllipse(Brushes.Green, new Pen(Brushes.Green, 1), _startDragPoint.Value, 3, 3);
+
+            if (data.SelectedFile != null)
             {
-                if (!vPathGrp.Engrave)
-                    continue;
-
-                foreach (var pth in vPathGrp.PathList)
-                {
-                    var currentPathData = pth.PathData;
-
-                    if (currentPathData.Points.Length == 0)
-                        continue;
-
-                    System.Drawing.PointF? prevPoint = null;
-                    System.Drawing.PointF? startPoint = null;
-
-                    for (int i = 0; i < currentPathData.Points.Length; i++)
-                    {
-                        var curPthType = currentPathData.Types[i];
-                        var curPoint = currentPathData.Points[i];
-                        //Find dirst point in path
-                        if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Start))
-                            startPoint = prevPoint = curPoint;
-                        //Draw line on path points
-                        else if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Line) ||
-                            Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.Bezier))
-                        {
-                            if (prevPoint.HasValue)
-                            {
-                                Point start = PointFToPoint(prevPoint.Value);
-                                Point end = PointFToPoint(curPoint);
-                                dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
-                            }
-                            prevPoint = curPoint;
-
-                            //ClosePath
-                            if (Geometry.PathTypeHelper.IsSet(curPthType, System.Drawing.Drawing2D.PathPointType.CloseSubpath))
-                            {
-                                Point start = PointFToPoint(curPoint);
-                                Point end = PointFToPoint(startPoint.Value);
-                                dc.DrawLine(new Pen(vPathGrp.Brush, 1.0), start, end);
-                            }
-                        }
-                    }
-                }
+                var rect = data.SelectedFile.Boundings;
+                dc.DrawRectangle(null, new Pen(Brushes.DarkGray, 2.0), new Rect(new Point(rect.Left, rect.Bottom), new Point(rect.Right, rect.Top)));
             }
             DrawArrows(dc);
         }
@@ -235,15 +365,20 @@ namespace ImageToGCode.Engine.Visualisers
         }
         private Point VectorToPoint(Geometry.Vector v)
         {
-            return new Point(v.X * Magnification, ActualHeight - v.Y * Magnification);
+            return new Point(v.X, v.Y);
         }
         private Point CoordToPoint(double x, double y)
         {
-            return new Point(x * Magnification, ActualHeight - y * Magnification);
+            return new Point(x, y);
         }
         private Point PointFToPoint(System.Drawing.PointF pt)
         {
-            return new Point(pt.X * Magnification, ActualHeight - pt.Y * Magnification);
+            return new Point(pt.X, pt.Y);
         }
+        private Point PointFToPointWOTrans(System.Drawing.PointF pt)
+        {
+            return new Point(pt.X, pt.Y);
+        }
+
     }
 }

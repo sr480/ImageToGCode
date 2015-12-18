@@ -2,6 +2,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:ImageToGCode.Engine.Visualisers">
-
+    <Style TargetType="{x:Type local:Visualiser}">
+        <Setter Property="Background" Value="Transparent"/>        
+    </Style>
 
 </ResourceDictionary>

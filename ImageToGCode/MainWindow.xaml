@@ -67,7 +67,18 @@
             <TabItem Header="Вектор">
                 <StackPanel>
                     <Button Command="{Binding VectorProcessor.OpenSvg}">Открыть вектор</Button>
-                    <ListView ItemsSource="{Binding VectorProcessor.PathGroups}" SelectedValue="{Binding VectorProcessor.SelectedGroup}" MinHeight="150" MaxHeight="400"
+                    <Button Command="{Binding VectorProcessor.RemoveSvg}">Убрать вектор</Button>
+                    <Label>Файлы:</Label>
+                    <ListView ItemsSource="{Binding VectorProcessor.Files}" SelectedValue="{Binding VectorProcessor.SelectedFile}" MinHeight="150" MaxHeight="200"
+                              HorizontalContentAlignment="Stretch">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding FileName}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    <Label>Пути:</Label>
+                    <ListView ItemsSource="{Binding VectorProcessor.SelectedFile.PathGroups}" SelectedValue="{Binding VectorProcessor.SelectedFile.SelectedGroup}" MinHeight="150" MaxHeight="400"
                               HorizontalContentAlignment="Stretch">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -86,8 +97,8 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    <Button Command="{Binding VectorProcessor.MoveUp}">/\ Переместить вверх</Button>
-                    <Button Command="{Binding VectorProcessor.MoveDown}">\/ Переместить вниз</Button>
+                    <Button Command="{Binding VectorProcessor.SelectedFile.MoveUp}">/\ Переместить вверх</Button>
+                    <Button Command="{Binding VectorProcessor.SelectedFile.MoveDown}">\/ Переместить вниз</Button>
                     <Button Command="{Binding Generate}">Генерировать</Button>
                 </StackPanel>
             </TabItem>
@@ -115,17 +126,17 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-            </HeaderedContentControl>            
+            </HeaderedContentControl>
             <Button Command="{Binding Save}">Сохранить</Button>
             <Button Click="Button_Click" >Просмотр вектор</Button>
             <Button Click="Button_Click_1" >Просмотр GCode</Button>
         </StackPanel>
         <TabControl Grid.Column="1" Grid.RowSpan="2">
             <TabItem Header="Просмотр">
-                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}" 
-                                MaxIntensity="{Binding ImageProcessor.MaxPower}"
-                                MinIntensity="{Binding ImageProcessor.MinPower}"
-                                Data="{Binding VectorProcessorViewModel}"/>                
+                <vis:Visualiser x:Name="visual" Magnification="{Binding Magnification}"
+                    Data="{Binding VectorProcessor}"
+                    SelectedFile="{Binding VectorProcessor.SelectedFile}">                    
+                </vis:Visualiser>
             </TabItem>
             <TabItem Header="GCode">
                 <ListView ItemsSource="{Binding GCode}">

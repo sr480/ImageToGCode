@@ -60,7 +60,14 @@
     <Compile Include="Engine\GCodeGeneration\BaseMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\CoordinatMotion.cs" />
     <Compile Include="Engine\GCodeGeneration\GCodeTrajectoryCounter.cs" />
-    <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\ShortestWayClosestPath.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\GraphicPathFacade.cs" />
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\PathCollectionToDistanceMatrixConverter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\ShortestWay\ShortestWayClosestPath.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Engine\GCodeGeneration\VectorProcessor\VFile.cs" />
     <Compile Include="Engine\GCodeGeneration\VectorProcessor\VPathGroupSVGGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\ImageProcessor\GCodeGenerator.cs" />
     <Compile Include="Engine\GCodeGeneration\VectorProcessor\SvgTransformator.cs">
@@ -89,10 +96,17 @@
     <Compile Include="Engine\Image.cs" />
     <Compile Include="Engine\ImageProcessor.cs" />
     <Compile Include="Engine\Visualisers\BitmapExtensions.cs" />
+    <Compile Include="Engine\Visualisers\DragHelper.cs" />
+    <Compile Include="Engine\Visualisers\IRenderable.cs" />
     <Compile Include="Engine\Visualisers\LinesVisualiser.cs" />
     <Compile Include="Engine\Pixel.cs" />
     <Compile Include="Engine\Interpolators\StepInterpolator.cs" />
     <Compile Include="Engine\Geometry\Vector.cs" />
+    <Compile Include="Engine\Visualisers\ToPointConverter.cs" />
+    <Compile Include="Engine\Visualisers\VFileVisual.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Engine\Visualisers\VisualGrid.cs" />
     <Compile Include="Engine\Visualisers\Visualiser.cs" />
     <Compile Include="Engine\Visualisers\VisualLine.cs" />
     <Compile Include="GCodeGenerator.cs" />
