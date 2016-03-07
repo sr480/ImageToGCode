@@ -114,6 +114,22 @@
                     <HeaderedContentControl Header="Расчетное время:">
                         <TextBlock Text="{Binding EstimatedTime}"/>
                     </HeaderedContentControl>
+
+                    <HeaderedContentControl Header="Цена за м реза:">
+                        <TextBox Text="{Binding CostPerFeedMeter}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Цена за м2:">
+                        <TextBox Text="{Binding CostPerSquareMeter}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Стоимость реза:">
+                        <TextBlock Text="{Binding CutCost}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Стоимость материала:">
+                        <TextBlock Text="{Binding MaterialCost}"/>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Header="Сумма:">
+                        <TextBlock Text="{Binding Total}"/>
+                    </HeaderedContentControl>
                 </StackPanel>
             </TabItem>
         </TabControl>

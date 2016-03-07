@@ -34,6 +34,15 @@ namespace ImageToGCode
                 RemoveSvg.RaiseCanExecuteChanged();
             }
         }
+        public double FilesSquare
+        {
+            get
+            {
+                if (Files.Count > 0)
+                    return Files.Sum(f => f.Boundings.Width * f.Boundings.Height / 1000000.0);
+                return 0.0;
+            }
+        }
         public VectorProcessorViewModel()
         {
             Files = new ObservableCollection<Engine.GCodeGeneration.VectorProcessor.VFile>();
@@ -48,11 +57,11 @@ namespace ImageToGCode
             if (openFileDialog.ShowDialog() == true)
             {
                 var file = new VFile(openFileDialog.FileName);
-                if(Files.Count > 0)
+                if (Files.Count > 0)
                 {
                     var prevBounding = Files.Last().Boundings;
-                    file.SetTransform(prevBounding.Right, 0);
-                }
+                    file.SetTransform(prevBounding.Right + 3, 0);
+                }                    
                 Files.Add(file);
             }
         }
@@ -65,13 +74,12 @@ namespace ImageToGCode
         {
             yield return new BaseGCode("G21");
             yield return new BaseGCode("G90");
-            
+
             foreach (var fl in Files)
             {
                 yield return new BaseGCode("M3 S0");
-                foreach (var grp in fl.PathGroups)
-                    foreach (var gc in grp.Generate())
-                        yield return gc;
+                foreach (var g in fl.Generate())
+                    yield return g;
                 yield return new BaseGCode("M5");
             }
             yield return new BaseGCode("%");

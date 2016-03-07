@@ -46,7 +46,7 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
             FileName = filePath.Remove(0, filePath.LastIndexOf('\\') + 1);
 
             LoadFile(filePath);
-            
+
             Transform = new Matrix(1, 0, 0, 1, 0, 0);
 
             MoveUp = new Command((x) => MoveUpAction(), (x) => SelectedGroup != null);
@@ -67,7 +67,7 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
                     //if (rect.Top > maxY) maxY = rect.Top;
                     //if (rect.Right > maxX) maxX = rect.Right;
 
-                    foreach(var pt in path.PathPoints)
+                    foreach (var pt in path.PathPoints)
                     {
                         if (pt.X < minX) minX = pt.X;
                         if (pt.Y < minY) minY = pt.Y;
@@ -86,9 +86,9 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 
             var gcg = new VPathGroupSVGGenerator(doc);
             foreach (var vPath in gcg.GenerateVPathGroups().OrderBy(g => g.PathColor.GetHue()))
-            {
                 PathGroups.Add(vPath);
-            }
+
+            SetTransform(-Boundings.Left, -Boundings.Top );
         }
 
 
@@ -129,6 +129,16 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
                 }
             }
 
+        }
+
+        public IEnumerable<BaseGCode> Generate()
+        {
+            yield return new BaseGCode(string.Format("(FileName: {0})", FileName));
+            yield return new BaseGCode(string.Format("(Boundings: Width: {0} mm, Height: {1} mm)", Boundings.Width, Boundings.Height));
+
+            foreach (var pg in PathGroups)
+                foreach (var g in pg.Generate())
+                    yield return g;
         }
         #region IPropertyChanged
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;

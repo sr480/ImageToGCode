@@ -11,8 +11,8 @@ namespace ImageToGCode.Engine.GCodeGeneration.VectorProcessor
 {
     class VPathGroup : INotifyPropertyChanged
     {
-        private int _Feed = 600;
-        private int _Power = 50;
+        private int _Feed = 800;
+        private int _Power = 80;
         private bool _Engrave = true;
         public Color PathColor { get; private set; }
         public bool Optimize { get; set; }

@@ -20,6 +20,13 @@ namespace ImageToGCode
         private double _RapidMotionDistance;
         private double _FeedMotionDistance;
         private double _Magnification = 1.0;
+
+        private double _CostPerSquareMeter = 160;
+        private double _CostPerFeedMeter = 25;
+        private double _CutCost;
+        private double _MaterialCost;
+        private double _Total;
+
         private ObservableCollection<BaseGCode> _GCode;
         private SynchronizationContext _synchronizationContext = SynchronizationContext.Current;
         #endregion
@@ -54,6 +61,7 @@ namespace ImageToGCode
                     return;
                 _FeedMotionDistance = value;
                 RaisePropertyChanged("FeedMotionDistance");
+                CountTotals();
             }
         }
         public double RapidMotionDistance
@@ -85,8 +93,70 @@ namespace ImageToGCode
             }
         }
 
+        public double CostPerSquareMeter
+        {
+            get
+            { return _CostPerSquareMeter; }
+            set
+            {
+
+                if (_CostPerSquareMeter == value)
+                    return;
+                _CostPerSquareMeter = value;
+                RaisePropertyChanged("CostPerSquareMeter");
+                CountTotals();
+            }
+        }
+        public double CostPerFeedMeter
+        {
+            get
+            {
+                return _CostPerFeedMeter;
+            }
+            set
+            {
+                if (_CostPerFeedMeter == value)
+                    return;
+                _CostPerFeedMeter = value;
+                RaisePropertyChanged("CostPerFeedMeter");
+                CountTotals();
+            }
+        }
+        public double CutCost
+        {
+            get { return _CutCost; }
+            private set
+            {
+                if (_CutCost == value)
+                    return;
+                _CutCost = value;
+                RaisePropertyChanged("CutCost");                
+            }
+        }
+        public double MaterialCost { get { return _MaterialCost; }
+        set
+            {
+                if (_MaterialCost == value)
+                    return;
+                _MaterialCost = value;
+                RaisePropertyChanged("MaterialCost");
+            }
+        }
+        public double Total { get { return _Total; }
+            set
+            {
+                if (_Total == value)
+                    return;
+                _Total = value;
+                RaisePropertyChanged("Total");
+            }
+        }
+
         #region Commands
-        public Command Save { get; private set; }
+        public Command Save
+        {
+            get; private set;
+        }
         public Command Generate { get; private set; }
         public Command CountStats { get; private set; }
         #endregion
@@ -115,6 +185,13 @@ namespace ImageToGCode
             MagnificationSource.Add(4);
             MagnificationSource.Add(10);
             MagnificationSource.Add(20);
+
+            VectorProcessor.Files.CollectionChanged += VectorFilesCollectionChanged;
+        }
+
+        private void VectorFilesCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            CountTotals();
         }
         #region Command implements
 
@@ -124,6 +201,8 @@ namespace ImageToGCode
             svDlg.Filter = "LinuxCNC file (*.ngc)|*.ngc|GCode file (*.nc)|*.nc|All file (*.*)|*.*";
             svDlg.FilterIndex = 1;
             svDlg.RestoreDirectory = true;
+            if (VectorProcessor.Files.Count == 1)
+                svDlg.FileName = VectorProcessor.Files[0].FileName.Remove(VectorProcessor.Files[0].FileName.LastIndexOf('.')) + ".ngc";
             if (svDlg.ShowDialog() == true)
             {
                 try
@@ -147,6 +226,12 @@ namespace ImageToGCode
             _GCode.Clear();
             foreach (var gc in VectorProcessor.Generate())
                 _GCode.Add(gc);
+
+            CountStatsAction();
+
+            _GCode.Insert(0, new BaseGCode(string.Format("(RapidMotions: {0} mm, FeedMotions: {1} mm)", RapidMotionDistance, FeedMotionDistance)));
+            _GCode.Insert(1, new BaseGCode(string.Format("(EstimatedTime: {0})", EstimatedTime)));
+
         }
         private void CountStatsAction()
         {
@@ -155,9 +240,16 @@ namespace ImageToGCode
             RapidMotionDistance = Math.Round(gcc.Rapid, 2);
             FeedMotionDistance = Math.Round(gcc.Feed, 2);
             EstimatedTime = gcc.EstimatedTime;
+
+            CountTotals();
         }
         #endregion
-
+        private void CountTotals()
+        {
+            CutCost = CostPerFeedMeter * FeedMotionDistance / 1000;
+            MaterialCost = CostPerSquareMeter * VectorProcessor.FilesSquare;
+            Total = MaterialCost + CutCost;
+        }
         private void GCode_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             Save.RaiseCanExecuteChanged();
